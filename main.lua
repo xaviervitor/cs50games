@@ -241,24 +241,7 @@ function love.update(dt)
         player1.dy = 0
     end
 
-    -- player 2
-    -- if love.keyboard.isDown('up') then
-    --     player2.dy = -PADDLE_SPEED
-    -- elseif love.keyboard.isDown('down') then
-    --     player2.dy = PADDLE_SPEED
-    -- else
-    --     player2.dy = 0
-    -- end
-
-    -- if player2.y > ball.y then
-    --     player2.dy = -PADDLE_SPEED
-    -- elseif player2.y < ball.y then
-    --     player2.dy = PADDLE_SPEED
-    -- else
-    --     player2.dy = 0
-    -- end
-
-    -- Paddle AI
+    -- player 2 paddle AI
     player2YCenterPos = player2.y + player2.height / 2
     paddleMoveThreshold = player2.height / 4
     -- Condition so the paddle doesn't get flickering between up and down
