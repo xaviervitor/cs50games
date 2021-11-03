@@ -17,6 +17,8 @@ PIPE_HEIGHT = 288
 BIRD_WIDTH = 38
 BIRD_HEIGHT = 24
 
+PAUSED = false
+
 function PlayState:init()
     self.bird = Bird()
     self.pipePairs = {}
@@ -25,6 +27,8 @@ function PlayState:init()
 
     -- initialize our last recorded Y value for a gap placement to base other gaps off of
     self.lastY = -PIPE_HEIGHT + math.random(80) + 20
+    self.lastGapHeight = 90
+    self.pipeSpawnInterval = 0
 end
 
 function PlayState:update(dt)
@@ -32,19 +36,33 @@ function PlayState:update(dt)
     self.timer = self.timer + dt
 
     -- spawn a new pipe pair every second and a half
-    if self.timer > 2 then
+    if self.timer > self.pipeSpawnInterval then
+        
+        -- reset gap height so that it doesn't get impossible to pass 
+        -- or too big to even be a obstacle
+        if self.lastGapHeight >= 120 or self.lastGapHeight <= 70 then
+            self.lastGapHeight = 90
+        end
+        
+        -- randomize gap height keeping it always greater than 70
+        local gapHeight = math.max(70, self.lastGapHeight + math.random(-20, 20))
+        self.lastGapHeight = gapHeight
+        
         -- modify the last Y coordinate we placed so pipe gaps aren't too far apart
         -- no higher than 10 pixels below the top edge of the screen,
         -- and no lower than a gap length (90 pixels) from the bottom
         local y = math.max(-PIPE_HEIGHT + 10, 
-            math.min(self.lastY + math.random(-20, 20), VIRTUAL_HEIGHT - 90 - PIPE_HEIGHT))
+            math.min(self.lastY + math.random(-20, 20), VIRTUAL_HEIGHT - gapHeight - PIPE_HEIGHT))
         self.lastY = y
 
         -- add a new pipe pair at the end of the screen at our new Y
-        table.insert(self.pipePairs, PipePair(y))
+        table.insert(self.pipePairs, PipePair(y, gapHeight))
 
         -- reset timer
         self.timer = 0
+
+        -- randomize pipe spawn time
+        self.pipeSpawnInterval = math.random(2, 3)
     end
 
     -- for every pair of pipes..
