@@ -108,7 +108,9 @@ function love.load()
         ['play'] = function() return PlayState() end,
         ['score'] = function() return ScoreState() end
     }
-    gStateMachine:change('title')
+    gStateMachine:change('score', {
+        score = 15
+    })
 
     -- initialize input table
     love.keyboard.keysPressed = {}
