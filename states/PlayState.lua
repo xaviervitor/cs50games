@@ -18,6 +18,7 @@ BIRD_WIDTH = 38
 BIRD_HEIGHT = 24
 
 PAUSED = false
+PAUSE_ICON = love.graphics.newImage('pause_icon.png')
 
 function PlayState:init()
     self.bird = Bird()
@@ -32,6 +33,19 @@ function PlayState:init()
 end
 
 function PlayState:update(dt)
+    if love.keyboard.wasPressed('p') then
+        PAUSED = not PAUSED
+        sounds['pause']:play()
+        if sounds['music']:isPlaying() then
+            sounds['music']:pause()
+        else
+            sounds['music']:play()
+        end
+    end
+
+    if PAUSED then
+        return
+    end
     -- update timer for pipe spawning
     self.timer = self.timer + dt
 
@@ -128,6 +142,10 @@ function PlayState:render()
     love.graphics.print('Score: ' .. tostring(self.score), 8, 8)
 
     self.bird:render()
+
+    if PAUSED then
+        love.graphics.draw(PAUSE_ICON, VIRTUAL_WIDTH / 2 - PAUSE_ICON:getWidth() / 2, VIRTUAL_HEIGHT / 2 - PAUSE_ICON:getHeight() / 2)
+    end
 end
 
 --[[
