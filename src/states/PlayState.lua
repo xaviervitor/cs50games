@@ -30,7 +30,7 @@ function PlayState:enter(params)
     
     self.powerups = {}
     
-    self.recoverPoints = 5000
+    self.recoverPoints = params.recoverPoints
     self.powerupTimer = 1000
     
     -- give ball random starting velocity
@@ -134,6 +134,8 @@ function PlayState:update(dt)
                     -- multiply recover points by 2
                     self.recoverPoints = self.recoverPoints + math.min(100000, self.recoverPoints * 2)
 
+                    self.paddle:grow()
+
                     -- play recover sound effect
                     gSounds['recover']:play()
                 end
@@ -219,6 +221,7 @@ function PlayState:update(dt)
                         highScores = self.highScores
                     })
                 else
+                    self.paddle:shrink()
                     gStateMachine:change('serve', {
                         paddle = self.paddle,
                         bricks = self.bricks,
