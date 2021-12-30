@@ -123,6 +123,12 @@ function LevelMaker.createMap(level)
     if #bricks == 0 then
         return self.createMap(level)
     else
+        if level % 4 == 0 then
+            local randomBrick = math.random(#bricks)
+            bricks[randomBrick].color = 8
+            bricks[randomBrick].tier = 10
+            bricks[randomBrick].lock = true
+        end
         return bricks
     end
 end

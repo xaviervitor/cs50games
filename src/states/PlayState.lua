@@ -27,12 +27,18 @@ function PlayState:enter(params)
     self.score = params.score
     self.highScores = params.highScores
     self.level = params.level
-    
-    self.powerups = {}
-    
     self.recoverPoints = params.recoverPoints
-    self.powerupTimer = 1000
-    
+    self.hasKey = false
+
+    self.powerups = {}
+    self.doublePowerupTimer = 1000
+
+    local timer = -1
+    if self.level % 4 == 0 then
+        timer = math.random(1000, 5000)
+    end
+    self.lockPowerupTimer = timer
+
     -- give ball random starting velocity
     params.ball.dx = math.random(-200, 200)
     params.ball.dy = math.random(-50, -60)
@@ -55,15 +61,24 @@ function PlayState:update(dt)
         return
     end
 
-    if self.powerupTimer == 0 then
+    if self.doublePowerupTimer == 0 then
         local randomX = math.random(8, VIRTUAL_WIDTH - 16 - 8)
         local randomY = math.random(8, (VIRTUAL_HEIGHT / 3) - 16 - 8)
         table.insert(self.powerups, Powerup(randomX, randomY, 9))
-        self.powerupTimer = math.random(1000, 5000)
+        self.doublePowerupTimer = math.random(1000, 5000)
     else
-        self.powerupTimer = self.powerupTimer - 1
+        self.doublePowerupTimer = self.doublePowerupTimer - 1
     end
-    
+
+    if self.lockPowerupTimer == 0 then
+        local randomX = math.random(8, VIRTUAL_WIDTH - 16 - 8)
+        local randomY = math.random(8, (VIRTUAL_HEIGHT / 3) - 16 - 8)
+        table.insert(self.powerups, Powerup(randomX, randomY, 10))
+        self.lockPowerupTimer = -1
+    else
+        self.lockPowerupTimer = self.lockPowerupTimer - 1
+    end
+
     -- update positions based on velocity
     self.paddle:update(dt)
     
@@ -108,6 +123,8 @@ function PlayState:update(dt)
                     table.insert(self.balls, newBall)
                 end
                 self.numberOfBalls = self.numberOfBalls + numberOfNewBalls
+            elseif powerup.type == 10 then
+                self.hasKey = true
             end
             table.remove(self.powerups, k)
         end
@@ -120,11 +137,9 @@ function PlayState:update(dt)
             -- only check collision if we're in play
             if brick.inPlay and ball:collides(brick) then
 
-                -- add to score
-                self.score = self.score + (brick.tier * 200 + brick.color * 25)
-
                 -- trigger the brick's hit function, which removes it from play
-                brick:hit()
+                -- add to score
+                self.score = brick:hit(self.score, self.hasKey)
 
                 -- if we have enough points, recover a point of health
                 if self.score > self.recoverPoints then
@@ -269,6 +284,10 @@ function PlayState:render()
 
     renderScore(self.score)
     renderHealth(self.health)
+
+    if self.hasKey then
+        love.graphics.draw(gTextures['main'], gFrames['powerups'][10], VIRTUAL_WIDTH - 120, 0)
+    end
 
     -- pause text, if paused
     if self.paused then
