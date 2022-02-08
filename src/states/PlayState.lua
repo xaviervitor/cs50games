@@ -108,6 +108,7 @@ function PlayState:update(dt)
     end
 
     if self.canInput then
+        -- mouse input, dragging swaps a tile 
         if love.mouse.isDown(1) then
             local x, y = love.mouse.getPosition()
             local gameX, gameY = push:toGame(x, y)
