@@ -13,10 +13,23 @@
 
 Board = Class{}
 
-function Board:init(x, y)
+function Board:init(level, x, y)
+    self.level = level
     self.x = x
     self.y = y
     self.matches = {}
+    self.validColors = {1, 4, 6, 9, 11, 12, 14, 17}
+
+    -- hacky solution to get weighted randomness
+    self.varietyWeights = {
+        1, 1, 1, 1, 1, 1, 1, 1, 
+        1, 1, 1, 1, 1, 1, 1, 1, 
+        1, 1, 1, 1, 1, 1, 1, 1, 
+        1, 1, 1, 1, 1, 1, 1, 1, 
+        2, 2, 2, 2, 2, 2, 2, 2, 
+        3, 3, 3, 3, 4, 4, 5, 6
+    }
+    self.varietyQuantities = {32, 32 + 8, 32 + 8 + 4, 32 + 8 + 4 + 2, 32 + 8 + 4 + 2 + 1, 32 + 8 + 4 + 2 + 1 + 1}
 
     self:initializeTiles()
 end
@@ -25,14 +38,15 @@ function Board:initializeTiles()
     self.tiles = {}
 
     for tileY = 1, 8 do
-        
         -- empty table that will serve as a new row
         table.insert(self.tiles, {})
 
         for tileX = 1, 8 do
-            
+            -- hacky solution to get weighted randomness
+            local weightedRandom = self.varietyWeights[math.random(self.varietyQuantities[math.min(self.level, 6)])]
             -- create a new tile at X,Y with a random color and variety
-            table.insert(self.tiles[tileY], Tile(tileX, tileY, math.random(18), math.random(6)))
+            table.insert(self.tiles[tileY], 
+                Tile(tileX, tileY, self.validColors[math.random(8)], weightedRandom))
         end
     end
 
@@ -240,7 +254,7 @@ function Board:getFallingTiles()
             if not tile then
 
                 -- new tile with random color and variety
-                local tile = Tile(x, y, math.random(18), math.random(6))
+                local tile = Tile(x, y, self.validColors[math.random(8)], self.level)
                 tile.y = -32
                 self.tiles[y][x] = tile
 

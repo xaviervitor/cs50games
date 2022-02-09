@@ -63,7 +63,7 @@ function PlayState:enter(params)
     self.level = params.level
 
     -- spawn a board and place it toward the right
-    self.board = params.board or Board(VIRTUAL_WIDTH - 272, 16)
+    self.board = params.board or Board(self.level, VIRTUAL_WIDTH - 272, 16)
 
     -- grab score from params if it was passed
     self.score = params.score or 0
@@ -122,10 +122,8 @@ function PlayState:update(dt)
                 self.previousHighlightedTile = self.highlightedTile
                 self.highlightedTile = self.board.tiles[self.boardHighlightY + 1][self.boardHighlightX + 1]
                 
-                if self.dragging then
-                    if self.previousHighlightedTile and self.highlightedTile ~= self.previousHighlightedTile then
-                        self:swap(self.previousHighlightedTile.gridX, self.previousHighlightedTile.gridY)
-                    end
+                if self.dragging and self.previousHighlightedTile and self.highlightedTile ~= self.previousHighlightedTile then
+                    self:swap(self.previousHighlightedTile.gridX, self.previousHighlightedTile.gridY)
                 end
             end
             self.dragging = true
@@ -230,9 +228,10 @@ function PlayState:calculateMatches()
         gSounds['match']:stop()
         gSounds['match']:play()
 
-        -- add score for each match
+        -- add score and time for each match
         for k, match in pairs(matches) do
             self.score = self.score + #match * 50
+            self.timer = self.timer + #match
         end
 
         -- remove any tiles that matched from the board, making empty spaces

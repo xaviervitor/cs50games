@@ -73,7 +73,7 @@ function love.load()
     }
     gStateMachine:change('play', {
         level = 1,
-        board = Board(VIRTUAL_WIDTH - 272, 16)
+        board = Board(1, VIRTUAL_WIDTH - 272, 16)
     })
 
     -- keep track of scrolling our background on the X axis
