@@ -20,9 +20,22 @@ function Board:init(level, x, y)
     self.matches = {}
     self.validColors = {1, 4, 6, 9, 11, 12, 14, 17}
 
-    -- another solution to get weighted randomness
-    self.varietyValues = {1, 2, 3, 4, 5, 6}
-    self.varietyWeights = {32, 8, 4, 2, 1, 1}
+    -- values from 1 to 6 with weight expressed as quantities. if a value x is 
+    -- repeated y times, it means that x has a weight of y.
+    -- example: if value 2 is repeated 8 times in the list, value 2 has weight 8. 
+    self.varietyValues = {
+        1, 1, 1, 1, 1, 1, 1, 1, 
+        1, 1, 1, 1, 1, 1, 1, 1, 
+        1, 1, 1, 1, 1, 1, 1, 1, 
+        1, 1, 1, 1, 1, 1, 1, 1, 
+        2, 2, 2, 2, 2, 2, 2, 2, 
+        3, 3, 3, 3, 4, 4, 5, 6
+    }
+    -- sums of weights of tile varieties referring to levels.
+    -- at level 3, varieties 1, 2 and 3 can appear on the board. in this 
+    -- case, in position x of the table we will have the sum of the weights of 
+    -- the varieties 1, 2 and 3 (w1 + w2 + w3 = 32 + 8 + 4 = 44)
+    self.varietyWeightSums = {32, 40, 44, 46, 47, 48}
 
     self:initializeTiles()
 end
@@ -35,8 +48,7 @@ function Board:initializeTiles()
         table.insert(self.tiles, {})
 
         for tileX = 1, 8 do
-            -- another solution to get weighted randomness
-            local weightedRandom = self:getWeightedRandom(self.level, values, weights)
+           local weightedRandom = self:getWeightedRandom(self.level, self.varietyValues, self.varietyWeightSums)
             -- create a new tile at X,Y with a random color and variety
             table.insert(self.tiles[tileY], 
                 Tile(tileX, tileY, self.validColors[math.random(8)], weightedRandom))
@@ -51,39 +63,8 @@ function Board:initializeTiles()
     end
 end
 
-function Board:getWeightedRandom(level, values, weights)
-    -- trims tables based in the current level. if level = x, both tables will have x values
-    local values = {}
-    local weights = {}
-    if self.level < 7 then
-        for index, value in ipairs(self.varietyValues) do
-            if index <= self.level then
-                values[index] = value
-            end
-        end
-        for index, weight in ipairs(self.varietyWeights) do
-            if index <= self.level then
-                weights[index] = weight
-            end
-        end
-    else
-        values = self.varietyValues
-        weights = self.varietyWeights
-    end
-    
-    local weightSum = 0
-    for index, weight in pairs(weights) do
-        weightSum = weightSum + weight
-    end
-
-    local random = math.random(weightSum)
-    local acumulatedWeight = 0
-    for index = 1, math.min(level, 6) do
-        acumulatedWeight = acumulatedWeight + weights[index]
-        if random <= acumulatedWeight then
-            return values[index]
-        end
-    end
+function Board:getWeightedRandom(level, values, weightSums)
+    return values[math.random(weightSums[math.min(level, 6)])]
 end
 
 --[[
@@ -280,8 +261,7 @@ function Board:getFallingTiles()
 
             -- if the tile is nil, we need to add a new one
             if not tile then
-                -- weighted randomness
-                local weightedRandom = self.varietyValues[math.random(self.varietyWeightSums[math.min(self.level, 6)])]
+                local weightedRandom = self:getWeightedRandom(self.level, self.varietyValues, self.varietyWeightSums)
                 -- new tile with random color and variety
                 local tile = Tile(x, y, self.validColors[math.random(8)], weightedRandom)
                 tile.y = -32
