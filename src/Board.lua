@@ -20,8 +20,8 @@ function Board:init(level, x, y)
     self.matches = {}
     self.validColors = {1, 4, 6, 9, 11, 12, 14, 17}
 
-    -- hacky solution to get weighted randomness
-    self.varietyWeights = {
+    -- weighted randomness
+    self.varietyValues = {
         1, 1, 1, 1, 1, 1, 1, 1, 
         1, 1, 1, 1, 1, 1, 1, 1, 
         1, 1, 1, 1, 1, 1, 1, 1, 
@@ -29,7 +29,7 @@ function Board:init(level, x, y)
         2, 2, 2, 2, 2, 2, 2, 2, 
         3, 3, 3, 3, 4, 4, 5, 6
     }
-    self.varietyQuantities = {32, 32 + 8, 32 + 8 + 4, 32 + 8 + 4 + 2, 32 + 8 + 4 + 2 + 1, 32 + 8 + 4 + 2 + 1 + 1}
+    self.varietyWeightSums = {32, 32 + 8, 32 + 8 + 4, 32 + 8 + 4 + 2, 32 + 8 + 4 + 2 + 1, 32 + 8 + 4 + 2 + 1 + 1}
 
     self:initializeTiles()
 end
@@ -42,8 +42,8 @@ function Board:initializeTiles()
         table.insert(self.tiles, {})
 
         for tileX = 1, 8 do
-            -- hacky solution to get weighted randomness
-            local weightedRandom = self.varietyWeights[math.random(self.varietyQuantities[math.min(self.level, 6)])]
+            -- weighted randomness
+            local weightedRandom = self.varietyValues[math.random(self.varietyWeightSums[math.min(self.level, 6)])]
             -- create a new tile at X,Y with a random color and variety
             table.insert(self.tiles[tileY], 
                 Tile(tileX, tileY, self.validColors[math.random(8)], weightedRandom))
@@ -252,9 +252,10 @@ function Board:getFallingTiles()
 
             -- if the tile is nil, we need to add a new one
             if not tile then
-
+                -- weighted randomness
+                local weightedRandom = self.varietyValues[math.random(self.varietyWeightSums[math.min(self.level, 6)])]
                 -- new tile with random color and variety
-                local tile = Tile(x, y, self.validColors[math.random(8)], self.level)
+                local tile = Tile(x, y, self.validColors[math.random(8)], weightedRandom)
                 tile.y = -32
                 self.tiles[y][x] = tile
 
