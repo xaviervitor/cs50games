@@ -20,16 +20,9 @@ function Board:init(level, x, y)
     self.matches = {}
     self.validColors = {1, 4, 6, 9, 11, 12, 14, 17}
 
-    -- weighted randomness
-    self.varietyValues = {
-        1, 1, 1, 1, 1, 1, 1, 1, 
-        1, 1, 1, 1, 1, 1, 1, 1, 
-        1, 1, 1, 1, 1, 1, 1, 1, 
-        1, 1, 1, 1, 1, 1, 1, 1, 
-        2, 2, 2, 2, 2, 2, 2, 2, 
-        3, 3, 3, 3, 4, 4, 5, 6
-    }
-    self.varietyWeightSums = {32, 32 + 8, 32 + 8 + 4, 32 + 8 + 4 + 2, 32 + 8 + 4 + 2 + 1, 32 + 8 + 4 + 2 + 1 + 1}
+    -- another solution to get weighted randomness
+    self.varietyValues = {1, 2, 3, 4, 5, 6}
+    self.varietyWeights = {32, 8, 4, 2, 1, 1}
 
     self:initializeTiles()
 end
@@ -42,8 +35,8 @@ function Board:initializeTiles()
         table.insert(self.tiles, {})
 
         for tileX = 1, 8 do
-            -- weighted randomness
-            local weightedRandom = self.varietyValues[math.random(self.varietyWeightSums[math.min(self.level, 6)])]
+            -- another solution to get weighted randomness
+            local weightedRandom = self:getWeightedRandom(self.level, values, weights)
             -- create a new tile at X,Y with a random color and variety
             table.insert(self.tiles[tileY], 
                 Tile(tileX, tileY, self.validColors[math.random(8)], weightedRandom))
@@ -55,6 +48,41 @@ function Board:initializeTiles()
         -- recursively initialize if matches were returned so we always have
         -- a matchless board on start
         self:initializeTiles()
+    end
+end
+
+function Board:getWeightedRandom(level, values, weights)
+    -- trims tables based in the current level. if level = x, both tables will have x values
+    local values = {}
+    local weights = {}
+    if self.level < 7 then
+        for index, value in ipairs(self.varietyValues) do
+            if index <= self.level then
+                values[index] = value
+            end
+        end
+        for index, weight in ipairs(self.varietyWeights) do
+            if index <= self.level then
+                weights[index] = weight
+            end
+        end
+    else
+        values = self.varietyValues
+        weights = self.varietyWeights
+    end
+    
+    local weightSum = 0
+    for index, weight in pairs(weights) do
+        weightSum = weightSum + weight
+    end
+
+    local random = math.random(weightSum)
+    local acumulatedWeight = 0
+    for index = 1, math.min(level, 6) do
+        acumulatedWeight = acumulatedWeight + weights[index]
+        if random <= acumulatedWeight then
+            return values[index]
+        end
     end
 end
 
