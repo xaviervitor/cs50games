@@ -51,7 +51,7 @@ function Board:initializeTiles()
            local weightedRandom = self:getWeightedRandom(self.level, self.varietyValues, self.varietyWeightSums)
             -- create a new tile at X,Y with a random color and variety
             table.insert(self.tiles[tileY], 
-                Tile(tileX, tileY, self.validColors[math.random(8)], weightedRandom))
+                Tile(tileX, tileY, self.validColors[math.random(8)], weightedRandom, false))
         end
     end
 
@@ -101,9 +101,15 @@ function Board:calculateMatches()
 
                     -- go backwards from here by matchNum
                     for x2 = x - 1, x - matchNum, -1 do
-                        
+
                         -- add each tile to the match that's in that match
-                        table.insert(match, self.tiles[y][x2])
+                        local tile = self.tiles[y][x2]
+                        if tile.shiny then
+                            for column = 1, 8 do
+                                table.insert(match, self.tiles[y][column])
+                            end                            
+                        end
+                        table.insert(match, tile)
                     end
 
                     -- add this match to our total matches table
@@ -125,7 +131,13 @@ function Board:calculateMatches()
             
             -- go backwards from end of last row by matchNum
             for x = 8, 8 - matchNum + 1, -1 do
-                table.insert(match, self.tiles[y][x])
+                local tile = self.tiles[y][x]
+                if tile.shiny then
+                    for column = 1, 8 do
+                        table.insert(match, self.tiles[y][column])
+                    end                            
+                end
+                table.insert(match, tile)
             end
 
             table.insert(matches, match)
@@ -149,7 +161,13 @@ function Board:calculateMatches()
                     local match = {}
 
                     for y2 = y - 1, y - matchNum, -1 do
-                        table.insert(match, self.tiles[y2][x])
+                        local tile = self.tiles[y2][x]
+                        if tile.shiny then
+                            for row = 1, 8 do
+                                table.insert(match, self.tiles[row][x])
+                            end                            
+                        end
+                        table.insert(match, tile)
                     end
 
                     table.insert(matches, match)
@@ -170,7 +188,13 @@ function Board:calculateMatches()
             
             -- go backwards from end of last row by matchNum
             for y = 8, 8 - matchNum + 1, -1 do
-                table.insert(match, self.tiles[y][x])
+                local tile = self.tiles[y][x]
+                if tile.shiny then
+                    for row = 1, 8 do
+                        table.insert(match, self.tiles[row][x])
+                    end                            
+                end
+                table.insert(match, tile)
             end
 
             table.insert(matches, match)
@@ -263,7 +287,7 @@ function Board:getFallingTiles()
             if not tile then
                 local weightedRandom = self:getWeightedRandom(self.level, self.varietyValues, self.varietyWeightSums)
                 -- new tile with random color and variety
-                local tile = Tile(x, y, self.validColors[math.random(8)], weightedRandom)
+                local tile = Tile(x, y, self.validColors[math.random(8)], weightedRandom, (math.random(96) == 1))
                 tile.y = -32
                 self.tiles[y][x] = tile
 
