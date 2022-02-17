@@ -71,10 +71,7 @@ function love.load()
         ['play'] = function() return PlayState() end,
         ['game-over'] = function() return GameOverState() end
     }
-    gStateMachine:change('play', {
-        level = 1,
-        board = Board(1, VIRTUAL_WIDTH - 272, 16)
-    })
+    gStateMachine:change('start')
 
     -- keep track of scrolling our background on the X axis
     backgroundX = 0
