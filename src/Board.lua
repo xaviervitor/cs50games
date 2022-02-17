@@ -51,7 +51,7 @@ function Board:initializeTiles()
            local weightedRandom = self:getWeightedRandom(self.level, self.varietyValues, self.varietyWeightSums)
             -- create a new tile at X,Y with a random color and variety
             table.insert(self.tiles[tileY], 
-                Tile(tileX, tileY, self.validColors[math.random(4)], weightedRandom, false))
+                Tile(tileX, tileY, self.validColors[math.random(8)], weightedRandom, false))
         end
     end
 
@@ -325,7 +325,7 @@ function Board:getFallingTiles()
             if not tile then
                 local weightedRandom = self:getWeightedRandom(self.level, self.varietyValues, self.varietyWeightSums)
                 -- new tile with random color and variety
-                local tile = Tile(x, y, self.validColors[math.random(4)], weightedRandom, (math.random(96) == 1))
+                local tile = Tile(x, y, self.validColors[math.random(8)], weightedRandom, (math.random(96) == 1))
                 tile.y = -32
                 self.tiles[y][x] = tile
 
