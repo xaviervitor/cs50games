@@ -178,35 +178,36 @@ function PlayState:update(dt)
 end
 
 --[[
-    Swaps the highlighted tile and the {x, y} tile of the board. The "canInput" 
+    Swaps the {tileX, tileY} tile and the {otherTileX, otherTileY} tile of the board. The "canInput" 
     flag is set to true after a match is invalid or after the recursive
     execution of the "calculateMatches" function.
 ]]
-function PlayState:swap(oldX, oldY, newX, newY)
+function PlayState:swap(tileX, tileY, otherTileX, otherTileY)
     self.canInput = false
-    -- if the difference between X and Y combined of this highlighted tile
-    -- vs the previous is not equal to 1, also remove highlight
-    if math.abs(oldX - newX) + math.abs(oldY - newY) > 1 then
+    -- if the difference between X and Y combined of the {tileX, tileY} tile
+    -- vs the {otherTileX, otherTileY} tile is not equal to 1, also remove highlight
+    if math.abs(tileX - otherTileX) + math.abs(tileY - otherTileY) > 1 then
         gSounds['error']:play()
         self.highlightedTile = nil
         self.canInput = true
     else
-        local oldTile, newTile = self:swapTiles(oldX, oldY, newX, newY)
+        local tile, otherTile = self:swapTiles(tileX, tileY, otherTileX, otherTileY)
 
         -- tween coordinates between the two so they swap
         Timer.tween(0.1, {
-            [oldTile] = {x = newTile.x, y = newTile.y},
-            [newTile] = {x = oldTile.x, y = oldTile.y}
+            [tile] = {x = otherTile.x, y = otherTile.y},
+            [otherTile] = {x = tile.x, y = tile.y}
         })
         -- once the swap is finished, we can tween falling blocks as needed
         :finish(function()
             if not self:calculateMatches() then
-                oldTile, newTile = self:swapTiles(oldX, oldY, newX, newY)
+                -- no matches, swap back
+                tile, otherTile = self:swapTiles(tileX, tileY, otherTileX, otherTileY)
 
                 -- tween coordinates between the two so they swap
                 Timer.tween(0.1, {
-                    [oldTile] = {x = newTile.x, y = newTile.y},
-                    [newTile] = {x = oldTile.x, y = oldTile.y}
+                    [tile] = {x = otherTile.x, y = otherTile.y},
+                    [otherTile] = {x = tile.x, y = tile.y}
                 })
                 :finish(function()
                     self.canInput = true
@@ -216,21 +217,25 @@ function PlayState:swap(oldX, oldY, newX, newY)
     end
 end
 
-function PlayState:swapTiles(oldX, oldY, newX, newY)
-    -- no matches, swap back
-    local oldTile = self.board.tiles[oldY][oldX]
-    local newTile = self.board.tiles[newY][newX]
+--[[
+    Swaps the highlighted tile and the {x, y} tile of the board. The "canInput" 
+    flag is set to true after a match is invalid or after the recursive
+    execution of the "calculateMatches" function.
+]]
+function PlayState:swapTiles(tileX, tileY, otherTileX, otherTileY)
+    local tile = self.board.tiles[tileY][tileX]
+    local otherTile = self.board.tiles[otherTileY][otherTileX]
 
     -- swap grid positions of tiles
-    local tempX, tempY = oldTile.gridX, oldTile.gridY
-    oldTile.gridX, oldTile.gridY = newTile.gridX, newTile.gridY
-    newTile.gridX, newTile.gridY = tempX, tempY
+    local tempX, tempY = tile.gridX, tile.gridY
+    tile.gridX, tile.gridY = otherTile.gridX, otherTile.gridY
+    otherTile.gridX, otherTile.gridY = tempX, tempY
 
     -- swap tiles in the tiles table
-    self.board.tiles[oldY][oldX] = newTile
-    self.board.tiles[newY][newX] = oldTile
+    self.board.tiles[tileY][tileX] = otherTile
+    self.board.tiles[otherTileY][otherTileX] = tile
 
-    return oldTile, newTile
+    return tile, otherTile
 end
 
 --[[
