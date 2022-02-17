@@ -40,6 +40,7 @@ function PlayState:init()
 
     self.score = 0
     self.timer = 60
+    self.fallingBlocksCounter = 0
 
     -- set our Timer class to turn cursor highlight on and off
     Timer.every(0.5, function()
@@ -123,7 +124,11 @@ function PlayState:update(dt)
                 self.highlightedTile = self.board.tiles[self.boardHighlightY + 1][self.boardHighlightX + 1]
                 
                 if self.dragging and self.previousHighlightedTile and self.highlightedTile ~= self.previousHighlightedTile then
-                    self:swap(self.previousHighlightedTile.gridX, self.previousHighlightedTile.gridY)
+                    self:swap(
+                        self.highlightedTile.gridX,
+                        self.highlightedTile.gridY,
+                        self.previousHighlightedTile.gridX,
+                        self.previousHighlightedTile.gridY)
                 end
             end
             self.dragging = true
@@ -160,7 +165,11 @@ function PlayState:update(dt)
             elseif self.highlightedTile == self.board.tiles[y][x] then
                 self.highlightedTile = nil
             else
-                self:swap(x, y)
+                self:swap(
+                    self.highlightedTile.gridX, 
+                    self.highlightedTile.gridY,
+                    x, 
+                    y)
             end
         end
     end
@@ -173,43 +182,55 @@ end
     flag is set to true after a match is invalid or after the recursive
     execution of the "calculateMatches" function.
 ]]
-function PlayState:swap(x, y)
+function PlayState:swap(oldX, oldY, newX, newY)
     self.canInput = false
     -- if the difference between X and Y combined of this highlighted tile
     -- vs the previous is not equal to 1, also remove highlight
-    if math.abs(self.highlightedTile.gridX - x) + math.abs(self.highlightedTile.gridY - y) > 1 then
+    if math.abs(oldX - newX) + math.abs(oldY - newY) > 1 then
         gSounds['error']:play()
         self.highlightedTile = nil
         self.canInput = true
     else
-        -- swap grid positions of tiles
-        local tempX = self.highlightedTile.gridX
-        local tempY = self.highlightedTile.gridY
-
-        local newTile = self.board.tiles[y][x]
-
-        self.highlightedTile.gridX = newTile.gridX
-        self.highlightedTile.gridY = newTile.gridY
-        newTile.gridX = tempX
-        newTile.gridY = tempY
-
-        -- swap tiles in the tiles table
-        self.board.tiles[self.highlightedTile.gridY][self.highlightedTile.gridX] =
-            self.highlightedTile
-
-        self.board.tiles[newTile.gridY][newTile.gridX] = newTile
+        local oldTile, newTile = self:swapTiles(oldX, oldY, newX, newY)
 
         -- tween coordinates between the two so they swap
         Timer.tween(0.1, {
-            [self.highlightedTile] = {x = newTile.x, y = newTile.y},
-            [newTile] = {x = self.highlightedTile.x, y = self.highlightedTile.y}
+            [oldTile] = {x = newTile.x, y = newTile.y},
+            [newTile] = {x = oldTile.x, y = oldTile.y}
         })
-        
         -- once the swap is finished, we can tween falling blocks as needed
         :finish(function()
-            self:calculateMatches()
+            if not self:calculateMatches() then
+                oldTile, newTile = self:swapTiles(oldX, oldY, newX, newY)
+
+                -- tween coordinates between the two so they swap
+                Timer.tween(0.1, {
+                    [oldTile] = {x = newTile.x, y = newTile.y},
+                    [newTile] = {x = oldTile.x, y = oldTile.y}
+                })
+                :finish(function()
+                    self.canInput = true
+                end)
+            end
         end)
     end
+end
+
+function PlayState:swapTiles(oldX, oldY, newX, newY)
+    -- no matches, swap back
+    local oldTile = self.board.tiles[oldY][oldX]
+    local newTile = self.board.tiles[newY][newX]
+
+    -- swap grid positions of tiles
+    local tempX, tempY = oldTile.gridX, oldTile.gridY
+    oldTile.gridX, oldTile.gridY = newTile.gridX, newTile.gridY
+    newTile.gridX, newTile.gridY = tempX, tempY
+
+    -- swap tiles in the tiles table
+    self.board.tiles[oldY][oldX] = newTile
+    self.board.tiles[newY][newX] = oldTile
+
+    return oldTile, newTile
 end
 
 --[[
@@ -241,19 +262,26 @@ function PlayState:calculateMatches()
 
         -- gets a table with tween values for tiles that should now fall
         local tilesToFall = self.board:getFallingTiles()
-
         -- tween new tiles that spawn from the ceiling over 0.25s to fill in
         -- the new upper gaps that exist
+        self.fallingBlocksCounter = self.fallingBlocksCounter + 1
         Timer.tween(0.25, tilesToFall):finish(function()
-            
             -- recursively call function in case new matches have been created
             -- as a result of falling blocks once new blocks have finished falling
             self:calculateMatches()
+            self.fallingBlocksCounter = self.fallingBlocksCounter - 1
+            if self.fallingBlocksCounter == 0 then
+                if #self.board:checkPotentialMatches() == 0 then
+                    self.board:initializeTiles()
+                end
+                self.canInput = true
+            end
         end)
     
-    -- if no matches, we can continue playing
+        return true
+        -- if no matches, we can continue playing
     else
-        self.canInput = true
+        return false
     end
 end
 

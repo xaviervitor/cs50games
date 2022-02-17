@@ -51,20 +51,58 @@ function Board:initializeTiles()
            local weightedRandom = self:getWeightedRandom(self.level, self.varietyValues, self.varietyWeightSums)
             -- create a new tile at X,Y with a random color and variety
             table.insert(self.tiles[tileY], 
-                Tile(tileX, tileY, self.validColors[math.random(8)], weightedRandom, false))
+                Tile(tileX, tileY, self.validColors[math.random(4)], weightedRandom, false))
         end
     end
 
-    while self:calculateMatches() do
-        
-        -- recursively initialize if matches were returned so we always have
-        -- a matchless board on start
+    while self:calculateMatches() or #self:checkPotentialMatches() == 0 do
+        -- recursively initialize if matches were returned or if there isn't 
+        -- any possible matches so we always have a matchless board with possible
+        -- at least one possible match on start
         self:initializeTiles()
     end
 end
 
 function Board:getWeightedRandom(level, values, weightSums)
     return values[math.random(weightSums[math.min(level, 6)])]
+end
+
+function Board:checkPotentialMatches()
+    local matches = {}
+    for y = 1, 8 do
+        for x = 1, 8 do
+            local tile = self.tiles[y][x]
+            -- swipe right
+            if x + 1 <= 8 then
+                local rightTile = self.tiles[y][x + 1]
+                self.tiles[y][x] = rightTile
+                self.tiles[y][x + 1] = tile
+                local rMatches = self:calculateMatches()
+                if rMatches ~= false then
+                    for k, v in pairs(rMatches) do
+                        table.insert(matches, v)
+                    end
+                end
+                self.tiles[y][x] = tile
+                self.tiles[y][x + 1] = rightTile
+            end
+            -- swipe down
+            if y + 1 <= 8 then
+                local downTile = self.tiles[y + 1][x]
+                self.tiles[y][x] = downTile
+                self.tiles[y + 1][x] = tile
+                local dMatches = self:calculateMatches()
+                if dMatches ~= false then
+                    for k, v in pairs(dMatches) do
+                        table.insert(matches, v)
+                    end
+                end
+                self.tiles[y][x] = tile
+                self.tiles[y + 1][x] = downTile
+            end
+        end
+    end
+    return matches
 end
 
 --[[
@@ -287,7 +325,7 @@ function Board:getFallingTiles()
             if not tile then
                 local weightedRandom = self:getWeightedRandom(self.level, self.varietyValues, self.varietyWeightSums)
                 -- new tile with random color and variety
-                local tile = Tile(x, y, self.validColors[math.random(8)], weightedRandom, (math.random(96) == 1))
+                local tile = Tile(x, y, self.validColors[math.random(4)], weightedRandom, (math.random(96) == 1))
                 tile.y = -32
                 self.tiles[y][x] = tile
 
