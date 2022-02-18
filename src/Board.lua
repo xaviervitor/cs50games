@@ -18,7 +18,7 @@ function Board:init(level, x, y)
     self.x = x
     self.y = y
     self.matches = {}
-    self.validColors = {1, 4, 6, 9, 11, 12, 14, 17}
+    self.validColors = {4, 6, 9, 11, 12, 17}
 
     -- values from 1 to 6 with weight expressed as quantities. if a value x is 
     -- repeated y times, it means that x has a weight of y.
@@ -51,7 +51,7 @@ function Board:initializeTiles()
            local weightedRandom = self:getWeightedRandom(self.level, self.varietyValues, self.varietyWeightSums)
             -- create a new tile at X,Y with a random color and variety
             table.insert(self.tiles[tileY], 
-                Tile(tileX, tileY, self.validColors[math.random(8)], weightedRandom, false))
+                Tile(tileX, tileY, self.validColors[math.random(6)], weightedRandom, false))
         end
     end
 
@@ -325,7 +325,7 @@ function Board:getFallingTiles()
             if not tile then
                 local weightedRandom = self:getWeightedRandom(self.level, self.varietyValues, self.varietyWeightSums)
                 -- new tile with random color and variety
-                local tile = Tile(x, y, self.validColors[math.random(8)], weightedRandom, (math.random(96) == 1))
+                local tile = Tile(x, y, self.validColors[math.random(6)], weightedRandom, (math.random(96) == 1))
                 tile.y = -32
                 self.tiles[y][x] = tile
 
