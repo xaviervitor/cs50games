@@ -37,6 +37,10 @@ function PlayState:init()
     self.player:changeState('falling')
 end
 
+function PlayState:enter(params)
+    self.player.x = self:getFirstGroundBlockX()
+end
+
 function PlayState:update(dt)
     Timer.update(dt)
 
@@ -131,6 +135,16 @@ function PlayState:spawnEnemies()
                         table.insert(self.level.entities, snail)
                     end
                 end
+            end
+        end
+    end
+end
+
+function PlayState:getFirstGroundBlockX()
+    for x = 1, self.tileMap.width do
+        for y = 1, self.tileMap.height do
+            if self.tileMap.tiles[y][x].id == TILE_ID_GROUND then
+                return (x - 1) * TILE_SIZE
             end
         end
     end
