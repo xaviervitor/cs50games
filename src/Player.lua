@@ -13,14 +13,24 @@ Player = Class{__includes = Entity}
 function Player:init(def)
     Entity.init(self, def)
     self.score = 0
+    self.key = nil
 end
 
 function Player:update(dt)
     Entity.update(self, dt)
+    
+    if self.key then
+        Timer.tween(0.1, {
+            [self.key] = {x = self.x + (self.direction == 'right' and -20 or 20), y = self.y}
+        })
+    end
 end
 
 function Player:render()
     Entity.render(self)
+    if self.key then
+        GameObject.render(self.key)
+    end
 end
 
 function Player:checkLeftCollisions(dt)

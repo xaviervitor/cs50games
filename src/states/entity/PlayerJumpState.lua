@@ -59,7 +59,10 @@ function PlayerJumpState:update(dt)
     for k, object in pairs(self.player.level.objects) do
         if object:collides(self.player) then
             if object.solid then
-                object.onCollide(object)
+                local disappearTrigger = object.onCollide(object, self.player)
+                if disappearTrigger then
+                    table.remove(self.player.level.objects, k)
+                end
 
                 self.player.y = object.y + object.height
                 self.player.dy = 0

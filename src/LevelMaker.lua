@@ -154,6 +154,8 @@ function LevelMaker.generate(width, height)
                             end
 
                             gSounds['empty-block']:play()
+
+                            return false
                         end
                     }
                 )
@@ -164,5 +166,131 @@ function LevelMaker.generate(width, height)
     local map = TileMap(width, height)
     map.tiles = tiles
     
+    local keyX, keyY = generateKeyPosition(map, objects)
+    local lockX, lockY = generateLockPosition(map, objects)
+    
+    local randomColor = math.random(#KEYS)
+
+    -- spawn a key
+    table.insert(objects,
+        GameObject {
+            texture = 'keys-and-locks',
+            x = (keyX),
+            y = (keyY),
+            width = 16,
+            height = 16,
+
+            frame = KEYS[randomColor],
+            collidable = true,
+            consumable = true,
+            hit = false,
+            solid = false,
+
+            onConsume = function(player)
+                gSounds['pickup']:play()
+                player.key = {
+                    texture = 'keys-and-locks',
+                    x = player.x,
+                    y = player.y,
+                    width = 16,
+                    height = 16,
+                    frame = KEYS[randomColor]
+                }
+            end
+        }
+    )
+    -- spawn a key lock
+    table.insert(objects,
+        GameObject {
+            texture = 'keys-and-locks',
+            x = (lockX),
+            y = (lockY),
+            width = 16,
+            height = 16,
+
+            frame = LOCKS[randomColor],
+            collidable = true,
+            hit = false,
+            solid = true,
+
+            onCollide = function(obj, player)
+                if not obj.hit then
+                    obj.hit = true
+                end
+                gSounds['pickup']:play()
+                player.key = nil
+
+                return true
+            end
+        }
+    )
+
     return GameLevel(entities, objects, map)
+end
+
+function generateKeyPosition(map, objects)
+    local x = math.random(1, math.floor(map.width / 2)) - 1
+    local y = 6 - 1
+    while aboveAbyss(map, x, y + 1) or collidesBlock(objects, x, y - 2) do
+        if x == math.floor(map.width / 2) then
+            x = 1
+        else
+            x = x + 1
+        end
+    end
+    if insidePillar(map, x, y) then
+        y = y - 2
+    end
+
+    return x * TILE_SIZE, y * TILE_SIZE
+end
+
+function generateLockPosition(map, objects)
+    local x = math.random(math.floor(map.width / 2 + 1), map.width) - 1
+    x = map.width - 1
+    local y = 4 - 1
+    while aboveAbyss(map, x, y + 3) or collidesBlock(objects, x, y) do
+        if x == map.width - 1 then
+            x = math.floor(map.width / 2 + 1) 
+        else
+            x = x + 1
+        end
+    end
+    if insidePillar(map, x, y + 1) then
+        y = y - 2
+    end
+    
+    return x * TILE_SIZE, y * TILE_SIZE
+end
+
+function insidePillar(map, x, y)
+    if map:pointToTile(x * TILE_SIZE, y * TILE_SIZE).id == TILE_ID_GROUND then
+        return true
+    end
+    return false
+end
+
+function aboveAbyss(map, x, y)
+    if map:pointToTile(x * TILE_SIZE, y * TILE_SIZE).id == TILE_ID_EMPTY then
+        return true
+    end
+    return false
+end
+
+function collidesBlock(objects, x, y)
+    local target = {
+        x = x * TILE_SIZE, 
+        y = y * TILE_SIZE,
+        width = 16,
+        height = 16
+    }
+    for k, obj in pairs(objects) do
+        if obj.texture == 'jump-blocks' and obj:collides(target) then
+            return true
+        else
+            goto continue
+        end
+        ::continue:: 
+    end
+    return false
 end
