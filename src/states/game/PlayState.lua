@@ -148,4 +148,5 @@ function PlayState:getFirstGroundBlockX()
             end
         end
     end
+    return 0
 end
