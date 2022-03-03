@@ -247,7 +247,6 @@ end
 
 function generateLockPosition(map, objects)
     local x = math.random(math.floor(map.width / 2 + 1), map.width) - 1
-    x = map.width - 1
     local y = 4 - 1
     while aboveAbyss(map, x, y + 3) or collidesBlock(objects, x, y) do
         if x == map.width - 1 then
