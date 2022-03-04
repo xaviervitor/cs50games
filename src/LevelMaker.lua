@@ -28,7 +28,8 @@ function LevelMaker.generate(width, height)
     end
 
     -- column by column generation instead of row; sometimes better for platformers
-    for x = 1, width do
+    -- disregard the last 3 columns, clearing them for the flagpole
+    for x = 1, width - 3 do
         local tileID = TILE_ID_EMPTY
         
         -- lay out the empty space
@@ -163,6 +164,39 @@ function LevelMaker.generate(width, height)
         end
     end
 
+    -- generating the last 3 columns with just ground for the flagpole
+    for x = width - 2, width do
+        local tileID = TILE_ID_EMPTY
+        
+        -- lay out the empty space
+        for y = 1, 6 do
+            table.insert(tiles[y],
+                Tile(x, y, tileID, nil, tileset, topperset))
+        end
+
+        tileID = TILE_ID_GROUND
+
+        for y = 7, height do
+            table.insert(tiles[y],
+                Tile(x, y, tileID, y == 7 and topper or nil, tileset, topperset))
+        end
+
+        -- chance to generate bushes
+        if math.random(8) == 1 then
+            table.insert(objects,
+                GameObject {
+                    texture = 'bushes',
+                    x = (x - 1) * TILE_SIZE,
+                    y = (6 - 1) * TILE_SIZE,
+                    width = 16,
+                    height = 16,
+                    frame = BUSH_IDS[math.random(#BUSH_IDS)] + (math.random(4) - 1) * 7,
+                    collidable = false
+                }
+            )
+        end
+    end
+
     local map = TileMap(width, height)
     map.tiles = tiles
     
@@ -217,8 +251,60 @@ function LevelMaker.generate(width, height)
                 if not obj.hit then
                     obj.hit = true
                 end
-                gSounds['pickup']:play()
+                gSounds['powerup-reveal']:play()
                 player.key = nil
+
+                -- flagpole
+                table.insert(objects,
+                    GameObject {
+                        texture = 'flagpoles',
+                        x = (width - 2) * TILE_SIZE,
+                        y = (4 - 1) * TILE_SIZE,
+                        width = 16,
+                        height = 48,
+
+                        frame = math.random(#FLAGPOLES),
+                        collidable = true,
+                        hit = false,
+                        solid = false,
+
+                        onCollide = function(obj, player)
+                            if not obj.hit then
+                                obj.hit = true
+                            end
+                            gSounds['pickup']:play()
+                            return false
+                        end
+                    }
+                )
+                -- flag
+                local randomFlagFrame = math.random(#FLAGS)
+                table.insert(objects,
+                    GameObject {
+                        texture = 'flags',
+                        x = (width - 2) * TILE_SIZE + TILE_SIZE / 2,
+                        y = (4 - 1) * TILE_SIZE,
+                        width = 16,
+                        height = 16,
+
+                        frame = FLAGS[randomFlagFrame],
+                        animation = Animation {
+                            frames = {FLAGS[randomFlagFrame], FLAGS[randomFlagFrame] + 1},
+                            interval = 0.25
+                        },
+                        collidable = true,
+                        hit = false,
+                        solid = false,
+
+                        onCollide = function(obj, player)
+                            if not obj.hit then
+                                obj.hit = true
+                            end
+                            gSounds['pickup']:play()
+                            return false
+                        end
+                    }
+                )
 
                 return true
             end
@@ -231,7 +317,7 @@ end
 function generateKeyPosition(map, objects)
     local x = math.random(1, math.floor(map.width / 2)) - 1
     local y = 6 - 1
-    while aboveAbyss(map, x, y + 1) or collidesBlock(objects, x, y - 2) do
+    while aboveAbyss(map, x, y + 1) do
         if x == math.floor(map.width / 2) then
             x = 1
         else
@@ -246,10 +332,12 @@ function generateKeyPosition(map, objects)
 end
 
 function generateLockPosition(map, objects)
-    local x = math.random(math.floor(map.width / 2 + 1), map.width) - 1
+    -- disregard the last 3 columns, clearing them for the flagpole
+    local validMapWidth = map.width - 3
+    local x = math.random(math.floor(map.width / 2 + 1), validMapWidth) - 1
     local y = 4 - 1
-    while aboveAbyss(map, x, y + 3) or collidesBlock(objects, x, y) do
-        if x == map.width - 1 then
+    while aboveAbyss(map, x, y + 3) do
+        if x == validMapWidth - 1 then
             x = math.floor(map.width / 2 + 1) 
         else
             x = x + 1
@@ -258,6 +346,7 @@ function generateLockPosition(map, objects)
     if insidePillar(map, x, y + 1) then
         y = y - 2
     end
+    removeCollidingBlock(objects, x, y)
     
     return x * TILE_SIZE, y * TILE_SIZE
 end
@@ -276,20 +365,16 @@ function aboveAbyss(map, x, y)
     return false
 end
 
-function collidesBlock(objects, x, y)
+function removeCollidingBlock(objects, x, y)
     local target = {
-        x = x * TILE_SIZE, 
-        y = y * TILE_SIZE,
-        width = 16,
-        height = 16
+        x = x * TILE_SIZE + TILE_SIZE / 2, 
+        y = y * TILE_SIZE + TILE_SIZE / 2,
+        width = 1,
+        height = 1
     }
     for k, obj in pairs(objects) do
         if obj.texture == 'jump-blocks' and obj:collides(target) then
-            return true
-        else
-            goto continue
+            table.remove(objects, k)
         end
-        ::continue:: 
     end
-    return false
 end

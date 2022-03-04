@@ -11,6 +11,7 @@ GameObject = Class{}
 function GameObject:init(def)
     self.x = def.x
     self.y = def.y
+    self.animation = def.animation or nil
     self.texture = def.texture
     self.width = def.width
     self.height = def.height
@@ -29,9 +30,15 @@ function GameObject:collides(target)
 end
 
 function GameObject:update(dt)
-
+    if self.animation ~= nil then
+        self.animation:update(dt)
+    end
 end
 
 function GameObject:render()
-    love.graphics.draw(gTextures[self.texture], gFrames[self.texture][self.frame], self.x, self.y)
+    local frame = self.frame
+    if self.animation ~= nil then
+        frame = self.animation:getCurrentFrame()
+    end
+    love.graphics.draw(gTextures[self.texture], gFrames[self.texture][frame], self.x, self.y)
 end
