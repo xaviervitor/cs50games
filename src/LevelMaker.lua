@@ -248,11 +248,15 @@ function LevelMaker.generate(width, height)
             solid = true,
 
             onCollide = function(obj, player)
+                if not player.key then
+                    return
+                end
+                player.key = nil
+                
                 if not obj.hit then
                     obj.hit = true
                 end
                 gSounds['powerup-reveal']:play()
-                player.key = nil
 
                 -- flagpole
                 table.insert(objects,
@@ -264,16 +268,14 @@ function LevelMaker.generate(width, height)
                         height = 48,
 
                         frame = math.random(#FLAGPOLES),
-                        collidable = true,
-                        hit = false,
+                        consumable = true,
                         solid = false,
 
-                        onCollide = function(obj, player)
-                            if not obj.hit then
-                                obj.hit = true
-                            end
-                            gSounds['pickup']:play()
-                            return false
+                        onConsume = function(player)
+                            gStateMachine:change('play', {
+                                levelWidth = width + 16,
+                                score = player.score
+                            })
                         end
                     }
                 )
@@ -291,18 +293,7 @@ function LevelMaker.generate(width, height)
                         animation = Animation {
                             frames = {FLAGS[randomFlagFrame], FLAGS[randomFlagFrame] + 1},
                             interval = 0.25
-                        },
-                        collidable = true,
-                        hit = false,
-                        solid = false,
-
-                        onCollide = function(obj, player)
-                            if not obj.hit then
-                                obj.hit = true
-                            end
-                            gSounds['pickup']:play()
-                            return false
-                        end
+                        }
                     }
                 )
 
