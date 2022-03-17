@@ -15,6 +15,7 @@ function GameObject:init(def, x, y)
 
     self.texture = def.texture
     self.frame = def.frame or 1
+    self.scale = def.scale or 1
 
     -- whether it acts as an obstacle or not
     self.solid = def.solid
@@ -40,5 +41,8 @@ end
 
 function GameObject:render(adjacentOffsetX, adjacentOffsetY)
     love.graphics.draw(gTextures[self.texture], gFrames[self.texture][self.states and self.states[self.state].frame or self.frame],
-        self.x + adjacentOffsetX, self.y + adjacentOffsetY)
+    self.x + self.width * self.scale + adjacentOffsetX, 
+    self.y + self.height * self.scale + adjacentOffsetY,
+    0, self.scale, self.scale, 
+    self.width * self.scale, self.height * self.scale, 0, 0)
 end

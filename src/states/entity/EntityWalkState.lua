@@ -60,6 +60,20 @@ function EntityWalkState:update(dt)
             self.bumped = true
         end
     end
+
+    for k, object in pairs(self.dungeon.currentRoom.objects) do
+        if not self.entity.flying and self.entity:collides(object) and object.solid then
+            if self.entity.direction == "left" then
+                self.entity.x = self.entity.x + self.entity.walkSpeed * dt
+            elseif self.entity.direction == "right" then
+                self.entity.x = self.entity.x - self.entity.walkSpeed * dt
+            elseif self.entity.direction == "up" then 
+                self.entity.y = self.entity.y + self.entity.walkSpeed * dt
+            elseif self.entity.direction == "down" then
+                self.entity.y = self.entity.y - self.entity.walkSpeed * dt
+            end
+        end
+    end
 end
 
 function EntityWalkState:processAI(params, dt)

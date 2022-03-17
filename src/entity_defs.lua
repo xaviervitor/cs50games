@@ -139,6 +139,7 @@ ENTITY_DEFS = {
         }
     },
     ['bat'] = {
+        flying = true,
         texture = 'entities',
         animations = {
             ['walk-left'] = {

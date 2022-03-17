@@ -28,12 +28,18 @@ GAME_OBJECT_DEFS = {
         type = 'heart',
         texture = 'hearts',
         frame = 5,
+        scale = 0.75,
         width = 16,
         height = 16,
         solid = false,
         consumable = true
     },
     ['pot'] = {
-        -- TODO
+        type = 'pot',
+        texture = 'tiles',
+        frame = 14,
+        width = 16,
+        height = 16,
+        solid = true
     }
 }
