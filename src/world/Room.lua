@@ -109,6 +109,7 @@ function Room:generateObjects()
     table.insert(self.objects, switch)
 
     for i = 1, math.random(5) do
+        -- TODO: do not spawn pots at entrances, above other objects and entities (including the player)
         local pot = GameObject(
             GAME_OBJECT_DEFS['pot'],
             math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
@@ -116,10 +117,6 @@ function Room:generateObjects()
             math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
                         VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
         )
-        
-        pot.onCollide = function()
-            -- maybe pickup code here?
-        end
         
         table.insert(self.objects, pot)
     end
