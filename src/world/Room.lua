@@ -12,6 +12,8 @@ function Room:init(player, dungeon)
     self.width = MAP_WIDTH
     self.height = MAP_HEIGHT
 
+    -- reference to player for collisions, etc.
+    self.player = player
     self.dungeon = dungeon
 
     self.tiles = {}
@@ -31,9 +33,6 @@ function Room:init(player, dungeon)
     table.insert(self.doorways, Doorway('bottom', false, self))
     table.insert(self.doorways, Doorway('left', false, self))
     table.insert(self.doorways, Doorway('right', false, self))
-
-    -- reference to player for collisions, etc.
-    self.player = player
 
     -- used for centering the dungeon rendering
     self.renderOffsetX = MAP_RENDER_OFFSET_X
@@ -109,15 +108,29 @@ function Room:generateObjects()
     table.insert(self.objects, switch)
 
     for i = 1, math.random(5) do
-        -- TODO: do not spawn pots at entrances, above other objects and entities (including the player)
-        local pot = GameObject(
-            GAME_OBJECT_DEFS['pot'],
-            math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
-                        VIRTUAL_WIDTH - TILE_SIZE * 2 - 16),
-            math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
-                        VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
-        )
-        
+        local pot = GameObject(GAME_OBJECT_DEFS['pot'], 0, 0)
+        repeat
+            pot.x = math.random(MAP_RENDER_OFFSET_X + TILE_SIZE, VIRTUAL_WIDTH - TILE_SIZE * 2 - 16)
+            pot.y = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE, VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
+
+            local potCollides = false
+            for k, object in pairs(self.objects) do
+                if object:collides(pot) then
+                    potCollides = true
+                end
+            end
+            for k, entity in pairs(self.entities) do
+                if entity:collides(pot) then
+                    potCollides = true
+                end
+            end
+            if self.player:collides(pot) then
+                potCollides = true
+            end
+        until(not potCollides)
+
+        pot.frame = pot.frame + math.random(0, 2)
+
         table.insert(self.objects, pot)
     end
 end

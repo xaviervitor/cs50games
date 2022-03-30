@@ -16,6 +16,10 @@ function Player:update(dt)
     Entity.update(self, dt)
 end
 
+function holdPot(pot)
+    self.heldPot = pot
+end
+
 function Player:collides(target)
     local selfY, selfHeight = self.y + self.height / 2, self.height - self.height / 2
     

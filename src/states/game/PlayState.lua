@@ -32,8 +32,8 @@ function PlayState:init()
     self.player.stateMachine = StateMachine {
         ['walk'] = function() return PlayerWalkState(self.player, self.dungeon) end,
         ['idle'] = function() return PlayerIdleState(self.player, self.dungeon) end,
-        ['carrying-idle'] = function() return PlayerIdleCarryingState(self.player) end,
-        ['carrying-walk'] = function() return PlayerWalkCarryingState(self.player, self.dungeon) end,
+        ['carrying-pot-idle'] = function() return PlayerIdleCarryingState(self.player, self.dungeon) end,
+        ['carrying-pot-walk'] = function() return PlayerWalkCarryingState(self.player, self.dungeon) end,
         ['swing-sword'] = function() return PlayerSwingSwordState(self.player, self.dungeon) end
     }
     self.player:changeState('idle')

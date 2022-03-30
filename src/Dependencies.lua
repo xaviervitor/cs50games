@@ -15,6 +15,7 @@ require 'src/GameObject'
 require 'src/game_objects'
 require 'src/Hitbox'
 require 'src/Player'
+require 'src/Projectile'
 require 'src/StateMachine'
 require 'src/Util'
 
@@ -28,8 +29,8 @@ require 'src/states/entity/EntityIdleState'
 require 'src/states/entity/EntityWalkState'
 
 require 'src/states/entity/player/PlayerIdleState'
-require 'src/states/entity/player/PlayerCarryingIdleState'
-require 'src/states/entity/player/PlayerCarryingWalkState'
+require 'src/states/entity/player/PlayerCarryingPotIdleState'
+require 'src/states/entity/player/PlayerCarryingPotWalkState'
 require 'src/states/entity/player/PlayerSwingSwordState'
 require 'src/states/entity/player/PlayerWalkState'
 
