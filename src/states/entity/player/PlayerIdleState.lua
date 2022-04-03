@@ -51,7 +51,7 @@ function PlayerIdleState:update(dt)
 
         -- check if hitbox collides with any objects in the scene
         for k, object in pairs(self.dungeon.currentRoom.objects) do
-            if object:collides(pickupHitbox) then
+            if object:collides(pickupHitbox) and object.type == 'pot' and not object.shattering and not object.destroyed then
                 self.entity.heldPot = object
                 table.remove(self.dungeon.currentRoom.objects, k)
                 self.entity:changeState('carrying-pot-idle')

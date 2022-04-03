@@ -14,6 +14,8 @@ function Projectile:init(def, x, y, frame, direction, dungeon)
     self.direction = direction
     self.dungeon = dungeon
     
+    self.hitbox = Hitbox(self.x, self.y + self.height, self.width, self.height)
+    
     self.throwLimit = 4 * TILE_SIZE
     self.fallLimit = self.height
 
@@ -62,12 +64,16 @@ function Projectile:update(dt)
             
             if self.direction == 'left' then
                 self.x = self.x - self.throwSpeed
+                self.hitbox.x = self.hitbox.x - self.throwSpeed
             elseif self.direction == 'right' then
                 self.x = self.x + self.throwSpeed
+                self.hitbox.x = self.hitbox.x + self.throwSpeed
             elseif self.direction == 'down' then
                 self.y = self.y + self.throwSpeed
+                self.hitbox.y = self.hitbox.y + self.throwSpeed
             elseif self.direction == 'up' then
                 self.y = self.y - self.throwSpeed
+                self.hitbox.y = self.hitbox.y - self.throwSpeed
             end
         end
         self:checkWallCollision()
@@ -89,24 +95,34 @@ function Projectile:render()
     math.ceil(self.x), math.ceil(self.y))
     
     love.graphics.setColor(1, 1, 1, 1)
+
+    -- -- projectile position
+    -- love.graphics.setColor(255, 0, 255, 255)
+    -- love.graphics.rectangle('line', self.x, self.y, self.width, self.height)
+    -- love.graphics.setColor(255, 255, 255, 255)
+
+    -- -- projectile hitbox
+    -- love.graphics.setColor(0, 255, 0, 255)
+    -- love.graphics.rectangle('line', self.hitbox.x, self.hitbox.y, self.hitbox.width, self.hitbox.height)
+    -- love.graphics.setColor(255, 255, 255, 255)
 end
 
 function Projectile:checkWallCollision()
     -- boundary checking on all sides, allowing us to avoid collision detection on tiles
     if self.direction == 'left' then
-        if self.x <= MAP_RENDER_OFFSET_X + TILE_SIZE then 
+        if self.hitbox.x <= MAP_RENDER_OFFSET_X + TILE_SIZE then 
             self.bumped = true
         end
     elseif self.direction == 'right' then
-        if self.x + self.width >= VIRTUAL_WIDTH - TILE_SIZE * 2 then
+        if self.hitbox.x + self.hitbox.width >= VIRTUAL_WIDTH - TILE_SIZE * 2 then
             self.bumped = true
         end
     elseif self.direction == 'up' then
-        if self.y <= MAP_RENDER_OFFSET_Y + TILE_SIZE - self.height / 2 then 
+        if self.hitbox.y <= MAP_RENDER_OFFSET_Y + TILE_SIZE - self.hitbox.height / 2 then 
             self.bumped = true
         end
     elseif self.direction == 'down' then
-        if self.y + self.height >= (VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE) then
+        if self.hitbox.y + self.hitbox.height >= (VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE) then
             self.bumped = true
         end
     end
@@ -114,7 +130,7 @@ end
 
 function Projectile:checkEnemyCollision()
     for k, entity in pairs(self.dungeon.currentRoom.entities) do
-        if entity:collides(self) then
+        if entity:collides(self.hitbox) and not entity.dead then
             entity:damage(1)
             self.bumped = true
         end
