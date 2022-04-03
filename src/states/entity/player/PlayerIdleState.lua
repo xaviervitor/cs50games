@@ -12,6 +12,7 @@ function PlayerIdleState:init(player, dungeon)
     -- calling with a dot to specify PlayerIdleState as self
     EntityIdleState.init(self, player)
     self.dungeon = dungeon
+    self.lifting = false
 end
 
 function PlayerIdleState:enter(params)
@@ -21,42 +22,17 @@ function PlayerIdleState:enter(params)
 end
 
 function PlayerIdleState:update(dt)
+    if self.lifting then
+        return
+    end
+
     if love.keyboard.isDown('left') or love.keyboard.isDown('right') or
        love.keyboard.isDown('up') or love.keyboard.isDown('down') then
         self.entity:changeState('walk')
     end
 
     if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
-        -- create hitbox based on where the player is and facing
-        local direction = self.entity.direction
-        local hitboxX, hitboxY
-        local hitboxWidth, hitboxHeight = 8, 8
-        
-        if direction == 'left' then
-            hitboxX = self.entity.x - hitboxWidth
-            hitboxY = self.entity.y + self.entity.height / 2
-        elseif direction == 'right' then
-            hitboxX = self.entity.x + self.entity.width
-            hitboxY = self.entity.y + self.entity.height / 2
-        elseif direction == 'up' then
-            hitboxX = self.entity.x + self.entity.width / 4
-            hitboxY = self.entity.y - hitboxHeight
-        else
-            hitboxX = self.entity.x + self.entity.width / 4
-            hitboxY = self.entity.y + self.entity.height
-        end
-        
-        -- separate hitbox for the player's sword; will only be active during this state
-        local pickupHitbox = Hitbox(hitboxX, hitboxY, hitboxWidth, hitboxHeight)
-
-        -- check if hitbox collides with any objects in the scene
-        for k, object in pairs(self.dungeon.currentRoom.objects) do
-            if object:collides(pickupHitbox) and object.type == 'pot' and not object.shattering and not object.destroyed then
-                self.entity.heldPot = object
-                table.remove(self.dungeon.currentRoom.objects, k)
-                self.entity:changeState('carrying-pot-idle')
-            end
-        end
+        self.entity:checkForPotPickup(self, self.dungeon)
     end
 
     if love.keyboard.wasPressed('space') then

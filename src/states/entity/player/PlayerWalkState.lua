@@ -15,9 +15,15 @@ function PlayerWalkState:init(player, dungeon)
     -- render offset for spaced character sprite; negated in render function of state
     self.entity.offsetY = 5
     self.entity.offsetX = 0
+
+    self.lifting = false
 end
 
 function PlayerWalkState:update(dt)
+    if self.lifting then
+        return
+    end
+
     if love.keyboard.isDown('left') then
         self.entity.direction = 'left'
         self.entity:changeAnimation('walk-left')
@@ -32,6 +38,10 @@ function PlayerWalkState:update(dt)
         self.entity:changeAnimation('walk-down')
     else
         self.entity:changeState('idle')
+    end
+
+    if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
+        self.entity:checkForPotPickup(self, self.dungeon)
     end
 
     if love.keyboard.wasPressed('space') then

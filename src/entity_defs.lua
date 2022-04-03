@@ -108,22 +108,22 @@ ENTITY_DEFS = {
             },
             ['object-lift-left'] = {
                 frames = {10, 11, 12},
-                interval = 0.15,
+                interval = 0.3,
                 texture = 'character-object-lift'
             },
             ['object-lift-right'] = {
                 frames = {4, 5, 6},
-                interval = 0.15,
+                interval = 0.3,
                 texture = 'character-object-lift'
             },
             ['object-lift-down'] = {
                 frames = {1, 2, 3},
-                interval = 0.15,
+                interval = 0.3,
                 texture = 'character-object-lift'
             },
             ['object-lift-up'] = {
                 frames = {7, 8, 9},
-                interval = 0.15,
+                interval = 0.3,
                 texture = 'character-object-lift'
             }
         }
