@@ -34,22 +34,23 @@ function PlayerWalkCarryingState:update(dt)
         self.entity:changeState('carrying-pot-idle')
     end
 
+    self.entity.heldPot.x = math.floor(self.entity.x)
+    self.entity.heldPot.y = math.floor(self.entity.y - self.entity.height / 2)
+    
     if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
         local pot = Projectile(
             GAME_OBJECT_DEFS['pot'],
             self.entity.heldPot.x,
             self.entity.heldPot.y,
             self.entity.heldPot.frame,
-            self.entity.direction
+            self.entity.direction,
+            self.dungeon
         )
         table.insert(self.dungeon.currentRoom.objects, pot)
         self.entity.walkSpeed = self.entity.walkSpeed * self.entity.heldPot.weight
         self.entity.heldPot = nil
         self.entity:changeState('idle')
     end
-
-    self.entity.heldPot.x = math.floor(self.entity.x)
-    self.entity.heldPot.y = math.floor(self.entity.y - self.entity.height / 2)
 
     -- perform base collision detection against walls
     EntityWalkState.update(self, dt)

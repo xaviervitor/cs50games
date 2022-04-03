@@ -8,10 +8,11 @@
 
 Projectile = Class{__includes = GameObject}
 
-function Projectile:init(def, x, y, frame, direction)
+function Projectile:init(def, x, y, frame, direction, dungeon)
     GameObject.init(self, def, x, y)
     self.frame = frame
     self.direction = direction
+    self.dungeon = dungeon
     
     self.throwLimit = 4 * TILE_SIZE
     self.fallLimit = self.height
@@ -30,6 +31,7 @@ function Projectile:init(def, x, y, frame, direction)
     self.flashTimer = 0
     
     self.destroyed = false
+    self.bumped = false
 end
 
 function Projectile:update(dt)
@@ -49,9 +51,12 @@ function Projectile:update(dt)
             self.fallDistance = self.fallDistance + self.fallSpeed
             
             self.y = self.y + self.fallSpeed
+        elseif not self.shattering then 
+            self.frame = self.frame + 38 -- columns of tilesheet times two. (19 * 2 = 38)
+            self.shattering = true
         end
 
-        if self.throwDistance < self.throwLimit then
+        if not self.bumped and self.throwDistance < self.throwLimit then
             -- keep track of how much distance the projectile has traveled
             self.throwDistance = self.throwDistance + self.throwSpeed
             
@@ -64,10 +69,9 @@ function Projectile:update(dt)
             elseif self.direction == 'up' then
                 self.y = self.y - self.throwSpeed
             end
-        elseif not self.shattering then 
-            self.frame = self.frame + 38 -- columns of tilesheet times two. (19 * 2 = 38)
-            self.shattering = true
         end
+        self:checkWallCollision()
+        self:checkEnemyCollision()
     end
 end
 
@@ -85,4 +89,34 @@ function Projectile:render()
     math.ceil(self.x), math.ceil(self.y))
     
     love.graphics.setColor(1, 1, 1, 1)
+end
+
+function Projectile:checkWallCollision()
+    -- boundary checking on all sides, allowing us to avoid collision detection on tiles
+    if self.direction == 'left' then
+        if self.x <= MAP_RENDER_OFFSET_X + TILE_SIZE then 
+            self.bumped = true
+        end
+    elseif self.direction == 'right' then
+        if self.x + self.width >= VIRTUAL_WIDTH - TILE_SIZE * 2 then
+            self.bumped = true
+        end
+    elseif self.direction == 'up' then
+        if self.y <= MAP_RENDER_OFFSET_Y + TILE_SIZE - self.height / 2 then 
+            self.bumped = true
+        end
+    elseif self.direction == 'down' then
+        if self.y + self.height >= (VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE) then
+            self.bumped = true
+        end
+    end
+end
+
+function Projectile:checkEnemyCollision()
+    for k, entity in pairs(self.dungeon.currentRoom.entities) do
+        if entity:collides(self) then
+            entity:damage(1)
+            self.bumped = true
+        end
+    end
 end

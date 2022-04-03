@@ -35,7 +35,8 @@ function PlayerIdleCarryingState:update(dt)
             self.entity.heldPot.x,
             self.entity.heldPot.y,
             self.entity.heldPot.frame,
-            self.entity.direction
+            self.entity.direction,
+            self.dungeon
         )
         table.insert(self.dungeon.currentRoom.objects, pot)
         self.entity.heldPot = nil
