@@ -69,11 +69,11 @@ function Player:pickupPot(state, object, dungeon, k)
     end
 
     state.lifting = true
-    Timer.after(0.3, function()
+    Timer.after(0.2, function()
         object.y = math.floor(self.y - self.height / 2)
-        Timer.after(0.3, function()
+        Timer.after(0.2, function()
             object.x = math.floor(self.x)
-            Timer.after(0.2, function()
+            Timer.after(0.1, function()
                 self.heldPot = object
                 table.remove(dungeon.currentRoom.objects, k)
                 state.lifting = false
