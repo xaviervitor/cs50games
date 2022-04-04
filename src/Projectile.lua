@@ -132,6 +132,7 @@ function Projectile:checkEnemyCollision()
     for k, entity in pairs(self.dungeon.currentRoom.entities) do
         if entity:collides(self.hitbox) and not entity.dead then
             entity:damage(1)
+            gSounds['hit-enemy']:play()
             self.bumped = true
         end
     end
