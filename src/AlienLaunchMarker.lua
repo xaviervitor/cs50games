@@ -26,7 +26,7 @@ function AlienLaunchMarker:init(world)
     self.launched = false
 
     -- our alien we will eventually spawn
-    self.alien = nil
+    self.aliens = {}
 end
 
 function AlienLaunchMarker:update(dt)
@@ -45,15 +45,7 @@ function AlienLaunchMarker:update(dt)
         elseif love.mouse.wasReleased(1) and self.aiming then
             self.launched = true
 
-            -- spawn new alien in the world, passing in user data of player
-            self.alien = Alien(self.world, 'round', self.shiftedX, self.shiftedY, 'Player')
-
-            -- apply the difference between current X,Y and base X,Y as launch vector impulse
-            self.alien.body:setLinearVelocity((self.baseX - self.shiftedX) * 10, (self.baseY - self.shiftedY) * 10)
-
-            -- make the alien pretty bouncy
-            self.alien.fixture:setRestitution(0.4)
-            self.alien.body:setAngularDamping(1)
+            self:spawnAlien(self.shiftedX, self.shiftedY, (self.baseX - self.shiftedX) * 10, (self.baseY - self.shiftedY) * 10, 0.4, 1)
 
             -- we're no longer aiming
             self.aiming = false
@@ -103,6 +95,118 @@ function AlienLaunchMarker:render()
         
         love.graphics.setColor(1, 1, 1, 1)
     else
-        self.alien:render()
+        for k, alien in pairs(self.aliens) do
+            alien:render()
+        end
     end
+end
+
+function AlienLaunchMarker:getLaunchedAlien()
+    return self.aliens[1]
+end
+
+function AlienLaunchMarker:spawnAlien(x, y, velocityX, velocityY, restitution, angularDamping)
+    -- spawn new alien in the world, passing in user data of player
+    local alien = Alien(self.world, 'round', x, y, 'Player')
+    
+    -- apply the difference between current X,Y and base X,Y as launch vector impulse
+    alien.body:setLinearVelocity(velocityX, velocityY)
+    
+    -- make the alien pretty bouncy
+    alien.fixture:setRestitution(restitution)
+    alien.body:setAngularDamping(angularDamping)
+    
+    table.insert(self.aliens, alien)
+end
+
+function AlienLaunchMarker:splitAlien()
+    local launchedAlien = self:getLaunchedAlien()
+    local alienX = launchedAlien.body:getX()
+    local alienY = launchedAlien.body:getY()
+    local alienLinearVelocityX, alienLinearVelocityY = launchedAlien.body:getLinearVelocity()
+    local alienRestitution = launchedAlien.fixture:getRestitution()
+    local alienAngularDamping = launchedAlien.body:getAngularDamping()
+
+    -- Calculates the velocity vector angle and uses it to calculate the
+    -- new aliens offset x and y, resulting in the two new aliens
+    -- spawning in the sides of the central alien, perpendicular with his
+    -- linear velocity vector angle.
+    local angle = getVelocityAngle(alienLinearVelocityX, alienLinearVelocityY)
+    local distanceConstant = 17.5
+
+    local leftAlienX = alienX - distanceConstant * math.cos(angle)
+    local leftAlienY = alienY - distanceConstant * math.sin(angle)
+
+    local rightAlienX = alienX + distanceConstant * math.cos(angle)
+    local rightAlienY = alienY + distanceConstant * math.sin(angle)
+    
+    local leftAlienLinearVelocityX, leftAlienLinearVelocityY = rotateVector(alienLinearVelocityX, alienLinearVelocityY, -10 * DEGREES_TO_RADIANS)
+    local rightAlienLinearVelocityX, rightAlienLinearVelocityY = rotateVector(alienLinearVelocityX, alienLinearVelocityY, 10 * DEGREES_TO_RADIANS)
+
+    -- left alien
+    self:spawnAlien(
+        leftAlienX,
+        leftAlienY,
+        leftAlienLinearVelocityX,
+        leftAlienLinearVelocityY,
+        alienRestitution,
+        alienAngularDamping
+    )
+    -- right alien
+    self:spawnAlien(
+        rightAlienX,
+        rightAlienY,
+        rightAlienLinearVelocityX,
+        rightAlienLinearVelocityY,
+        alienRestitution,
+        alienAngularDamping
+    )
+end
+
+function getVelocityAngle(aVectorX, aVectorY)
+    -- y axis vector. The B vector needs to flip if the A vector
+    -- is in quadrants I or IV (aVectorX > 0), because this function returns 
+    -- a angle between 0° and 180° instead of 0° to 360°.
+    --
+    -- without flipping B (reference) vector
+    --      0°/180°
+    --    135°  *135°*
+    --   90°  ()   90°
+    --    45°   *45°*
+    --      0°/180°
+    --
+    -- flipping B (reference) vector
+    --      0°/180°
+    --    135°   *45°*
+    --   90°  ()   90°
+    --    45°   *135°*
+    --      0°/180°
+    --
+    -- after flipping the reference vector, 
+
+    local bVectorX = 0
+    local bVectorY = (aVectorX > 0) and -1 or 1
+
+    -- angle between two vectors formula
+    -- cos(theta) = u * v / || u || * || v ||
+    
+    -- 1: find vectors dot product (u * v)
+    local dotProduct = aVectorX * bVectorX + aVectorY * bVectorY
+    -- 2: find vectors magnitude || u || and || v ||
+    local aVectorMagnitude = math.sqrt(math.pow(aVectorX, 2) + math.pow(aVectorY, 2))
+    local bVectorMagnitude = math.sqrt(math.pow(bVectorX, 2) + math.pow(bVectorY, 2))
+    
+    -- 3: to find theta, take the inverse of cos(theta) on both sides
+    -- cos(theta) = u * v / || u || * || v ||
+    -- theta = arccos(u * v / || u || * || v ||)
+    return math.acos(dotProduct / aVectorMagnitude * bVectorMagnitude)
+end
+
+function rotateVector(x, y, angle)
+    -- 2d vector rotation formula
+    -- x2 = cos(theta) * x1 - sin(theta) * y1
+    -- y2 = sin(theta) * x1 + cos(theta) * y1
+    local rotatedX = math.cos(angle) * x - math.sin(angle) * y
+    local rotatedY = math.sin(angle) * x + math.cos(angle) * y
+    return rotatedX, rotatedY
 end

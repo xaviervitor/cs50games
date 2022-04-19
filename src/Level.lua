@@ -18,6 +18,7 @@ function Level:init()
     -- actual collision callbacks can cause stack overflow and other errors
     self.destroyedBodies = {}
 
+    self.playerCollided = false
     -- define collision callbacks for our world; the World object expects four,
     -- one for different stages of any given collision
     function beginContact(a, b, coll)
@@ -25,6 +26,9 @@ function Level:init()
         types[a:getUserData()] = true
         types[b:getUserData()] = true
 
+        if types['Player'] then
+            self.playerCollided = true
+        end
         -- if we collided between both the player and an obstacle...
         if types['Obstacle'] and types['Player'] then
 
@@ -127,6 +131,14 @@ function Level:init()
     self.groundFixture:setFriction(0.5)
     self.groundFixture:setUserData('Ground')
 
+    -- outer wall data, prevents aliens to fall out of the ground which 
+    -- softlocks the game as the velocity of that alien will never be < 1.5 
+    self.wallShape = love.physics.newEdgeShape(0, 0, 0, VIRTUAL_HEIGHT)
+    self.wallBody = love.physics.newBody(self.world, VIRTUAL_WIDTH * 2, 0, 'static')
+    self.wallFixture = love.physics.newFixture(self.wallBody, self.wallShape)
+    self.wallFixture:setFriction(0.5)
+    self.wallFixture:setUserData('Ground')
+
     -- background graphics
     self.background = Background()
 end
@@ -172,12 +184,27 @@ function Level:update(dt)
 
     -- replace launch marker if original alien stopped moving
     if self.launchMarker.launched then
-        local xPos, yPos = self.launchMarker.alien.body:getPosition()
-        local xVel, yVel = self.launchMarker.alien.body:getLinearVelocity()
+        if (love.keyboard.wasPressed('space') or love.mouse.wasPressed(1)) and not self.playerCollided then
+            self.launchMarker:splitAlien()
+        end
         
-        -- if we fired our alien to the left or it's almost done rolling, respawn
-        if xPos < 0 or (math.abs(xVel) + math.abs(yVel) < 1.5) then
-            self.launchMarker.alien.body:destroy()
+        local alienStillRolling = false
+        for k, alien in pairs(self.launchMarker.aliens) do
+            local xPos, yPos = alien.body:getPosition()
+            local xVel, yVel = alien.body:getLinearVelocity()
+    
+            -- if we fired our alien to the left or it's almost done rolling, respawn
+            if xPos >= 0 and (math.abs(xVel) + math.abs(yVel) >= 1.5) then
+                alienStillRolling = true
+            end
+        end
+        
+        if not alienStillRolling then
+            for k, alien in pairs(self.launchMarker.aliens) do
+                alien.body:destroy()
+            end
+
+            self.playerCollided = false
             self.launchMarker = AlienLaunchMarker(self.world)
 
             -- re-initialize level if we have no more aliens
