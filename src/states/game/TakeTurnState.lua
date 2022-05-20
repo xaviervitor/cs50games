@@ -186,7 +186,7 @@ function TakeTurnState:victory()
 
             -- sum all IVs and multiply by level to get exp amount
             local exp = (self.opponentPokemon.HPIV + self.opponentPokemon.attackIV +
-                self.opponentPokemon.defenseIV + self.opponentPokemon.speedIV) * self.opponentPokemon.level
+            self.opponentPokemon.defenseIV + self.opponentPokemon.speedIV) * self.opponentPokemon.level
 
             gStateStack:push(BattleMessageState('You earned ' .. tostring(exp) .. ' experience points!',
                 function() end, false))
@@ -212,10 +212,35 @@ function TakeTurnState:victory()
 
                         -- set our exp to whatever the overlap is
                         self.playerPokemon.currentExp = self.playerPokemon.currentExp - self.playerPokemon.expToLevel
-                        self.playerPokemon:levelUp()
+                        
+                        local oldHP = self.playerPokemon.HP
+                        local oldAttack = self.playerPokemon.attack
+                        local oldDefense = self.playerPokemon.defense
+                        local oldSpeed = self.playerPokemon.speed
+                        
+                        local HPIncrease, attackIncrease, defenseIncrease, speedIncrease = self.playerPokemon:levelUp()
 
-                        gStateStack:push(BattleMessageState('Congratulations! Level Up!',
+                        gStateStack:push(BattleMessageState(self.playerPokemon.name .. ' grew\nto LV.' .. self.playerPokemon.level .. '!'))
+                        -- pushes exp menu without popping up the level up message
+                        -- so that both can be viewed at the same time
+                        gStateStack:push(ExpMenuState({
+                            oldHP = oldHP,
+                            oldAttack = oldAttack,
+                            oldDefense = oldDefense,
+                            oldSpeed = oldSpeed,
+                            newHP = self.playerPokemon.HP,
+                            newAttack = self.playerPokemon.attack,
+                            newDefense = self.playerPokemon.defense,
+                            newSpeed = self.playerPokemon.speed,
+                            HPIncrease = HPIncrease,
+                            attackIncrease = attackIncrease,
+                            defenseIncrease = defenseIncrease,
+                            speedIncrease = speedIncrease
+                        },
                         function()
+                            -- pops off the level up message at the same time
+                            -- as the exp menu
+                            gStateStack:pop()
                             self:fadeOutWhite()
                         end))
                     else
