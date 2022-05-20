@@ -17,6 +17,7 @@ function Menu:init(def)
     
     self.selection = Selection {
         items = def.items,
+        showCursor = def.showCursor,
         x = def.x,
         y = def.y,
         width = def.width,

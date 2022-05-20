@@ -22,12 +22,17 @@ function Selection:init(def)
     self.width = def.width
     self.font = def.font or gFonts['small']
 
+    self.showCursor = def.showCursor == nil and true or def.showCursor
+
     self.gapHeight = self.height / #self.items
 
     self.currentSelection = 1
 end
 
 function Selection:update(dt)
+    if not self.showCursor then
+        return
+    end
     if love.keyboard.wasPressed('up') then
         if self.currentSelection == 1 then
             self.currentSelection = #self.items
@@ -61,7 +66,7 @@ function Selection:render()
         local paddedY = currentY + (self.gapHeight / 2) - self.font:getHeight() / 2
 
         -- draw selection marker if we're at the right index
-        if i == self.currentSelection then
+        if self.showCursor and i == self.currentSelection then
             love.graphics.draw(gTextures['cursor'], self.x - 8, paddedY)
         end
 
