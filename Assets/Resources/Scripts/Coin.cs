@@ -22,7 +22,7 @@ public class Coin : MonoBehaviour {
 		}
 
 		// infinitely rotate this coin about the Y axis in world space
-		transform.Rotate(0, 5f, 0, Space.World);
+		transform.Rotate(0, 1f, 0, Space.World);
 	}
 
 	void OnTriggerEnter(Collider other) {
