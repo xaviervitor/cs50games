@@ -61,6 +61,13 @@ public class HeliController : MonoBehaviour {
 		GetComponent<ParticleSystem>().Play();
 	}
 
+	public void PickupGem() {
+		coinTotal += 5;
+
+		GetComponents<AudioSource>()[0].Play();
+		GetComponent<ParticleSystem>().Play();
+	}
+
 	public void Explode() {
 		explosionSound.Play();
 
