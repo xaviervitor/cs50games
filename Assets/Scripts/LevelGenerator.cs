@@ -12,12 +12,15 @@ public class LevelGenerator : MonoBehaviour {
 
 	public GameObject floorParent;
 	public GameObject wallsParent;
+	public GameObject holesParent;
 
 	// allows us to see the maze generation from the scene view
 	public bool generateRoof = true;
 
 	// number of times we want to "dig" in our maze
 	public int tilesToRemove = 50;
+
+	public int maxFloorHoles = 4;
 
 	public int mazeSize;
 
@@ -28,10 +31,12 @@ public class LevelGenerator : MonoBehaviour {
 	private bool characterPlaced = false;
 
 	// 2D array representing the map
-	private bool[,] mapData;
+	private int[,] mapData;
 
 	// we use these to dig through our maze and to spawn the pickup at the end
 	private int mazeX = 4, mazeY = 1;
+
+	public static int currentFloor = 0;
 
 	// Use this for initialization
 	void Start () {
@@ -42,24 +47,51 @@ public class LevelGenerator : MonoBehaviour {
 		// create actual maze blocks from maze boolean data
 		for (int z = 0; z < mazeSize; z++) {
 			for (int x = 0; x < mazeSize; x++) {
-				if (mapData[z, x]) {
+				if (mapData[z, x] == 1) {
 					CreateChildPrefab(wallPrefab, wallsParent, x, 1, z);
 					CreateChildPrefab(wallPrefab, wallsParent, x, 2, z);
 					CreateChildPrefab(wallPrefab, wallsParent, x, 3, z);
-				} else if (!characterPlaced) {
-					
-					// place the character controller on the first empty wall we generate
-					characterController.transform.SetPositionAndRotation(
-						new Vector3(x, 1, z), Quaternion.identity
-					);
+				} else if (mapData[z, x] == -1) {
+					// create walls around holes with a depth of 6 to
+					// make a seemingly bottomless pit, spawning a 
+					// floor to make the fog effect work correctly
+					int depth = 6;
+					// right wall
+					if (mapData[z + 1, x] != -1) 
+						for (int i = 0 ; i <= depth ; i++) 
+							CreateChildPrefab(floorPrefab, holesParent, x, -i, z + 1);
+					// left wall
+					if (mapData[z - 1, x] != -1)
+						for (int i = 0 ; i <= depth ; i++) 
+							CreateChildPrefab(floorPrefab, holesParent, x, -i, z - 1);
+					// up wall		
+					if (mapData[z, x + 1] != -1) 
+						for (int i = 0 ; i <= depth ; i++) 
+							CreateChildPrefab(floorPrefab, holesParent, x + 1, -i, z);
+					// down wall	
+					if (mapData[z, x - 1] != -1) 
+						for (int i = 0 ; i <= depth ; i++) 
+							CreateChildPrefab(floorPrefab, holesParent, x - 1, -i, z);
+							
+					// floor at the bottom
+					CreateChildPrefab(floorPrefab, holesParent, x, -depth - 1, z);
+				} else if (mapData[z, x] == 0) {
+					// create floor
+					CreateChildPrefab(floorPrefab, floorParent, x, 0, z);
+				
+					if (!characterPlaced && z != mazeY && x != mazeX) {
+						
+						// place the character controller on the first empty wall we generate
+						characterController.transform.SetPositionAndRotation(
+							new Vector3(x, 1, z), Quaternion.identity
+						);
 
-					// flag as placed so we never consider placing again
-					characterPlaced = true;
+						// flag as placed so we never consider placing again
+						characterPlaced = true;
+					} 
 				}
-
-				// create floor and ceiling
-				CreateChildPrefab(floorPrefab, floorParent, x, 0, z);
-
+				
+				// create ceiling
 				if (generateRoof) {
 					CreateChildPrefab(ceilingPrefab, wallsParent, x, 4, z);
 				}
@@ -73,19 +105,20 @@ public class LevelGenerator : MonoBehaviour {
 
 	// generates the booleans determining the maze, which will be used to construct the cubes
 	// actually making up the maze
-	bool[,] GenerateMazeData() {
-		bool[,] data = new bool[mazeSize, mazeSize];
+	int[,] GenerateMazeData() {
+		int[,] data = new int[mazeSize, mazeSize];
 
 		// initialize all walls to true
 		for (int y = 0; y < mazeSize; y++) {
 			for (int x = 0; x < mazeSize; x++) {
-				data[y, x] = true;
+				data[y, x] = 1;
 			}
 		}
 
 		// counter to ensure we consume a minimum number of tiles
 		int tilesConsumed = 0;
 
+		int holesCreated = 0;
 		// iterate our random crawler, clearing out walls and straying from edges
 		while (tilesConsumed < tilesToRemove) {
 			
@@ -107,11 +140,25 @@ public class LevelGenerator : MonoBehaviour {
 				mazeX = Mathf.Clamp(mazeX + xDirection, 1, mazeSize - 2);
 				mazeY = Mathf.Clamp(mazeY + yDirection, 1, mazeSize - 2);
 
-				if (data[mazeY, mazeX]) {
-					data[mazeY, mazeX] = false;
+				if (data[mazeY, mazeX] == 1) {
+					data[mazeY, mazeX] = 0;
 					tilesConsumed++;
 				}
 			}
+		}
+
+		// Spawns floor holes until maxFloorHoles is reached or the while 
+		// loop runs (maxFloorHoles * 2) times, to prevent a infinite loop.
+		int maxTries = maxFloorHoles * 2;
+		int tries = 0;
+		while (holesCreated < maxFloorHoles && tries < maxTries) {
+			int x = Random.Range(1, mazeSize - 2);
+			int y = Random.Range(1, mazeSize - 2);
+			if (data[x, y] == 0) {
+				data[x, y] = -1;
+				holesCreated++;
+			}
+			tries++;
 		}
 
 		return data;

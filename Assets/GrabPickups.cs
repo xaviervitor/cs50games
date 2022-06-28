@@ -13,6 +13,8 @@ public class GrabPickups : MonoBehaviour {
 
 	void OnControllerColliderHit(ControllerColliderHit hit) {
 		if (hit.gameObject.tag == "Pickup") {
+			Destroy(hit.gameObject);
+			LevelGenerator.currentFloor++;
 			pickupSoundSource.Play();
 			SceneManager.LoadScene("Play");
 		}
