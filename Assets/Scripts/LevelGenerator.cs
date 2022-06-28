@@ -48,31 +48,34 @@ public class LevelGenerator : MonoBehaviour {
 		for (int z = 0; z < mazeSize; z++) {
 			for (int x = 0; x < mazeSize; x++) {
 				if (mapData[z, x] == 1) {
+					// creates ground to make the pit spawning easier,
+					// ensuring that the ground (0) always exists.
+					CreateChildPrefab(floorPrefab, wallsParent, x, 0, z);
 					CreateChildPrefab(wallPrefab, wallsParent, x, 1, z);
 					CreateChildPrefab(wallPrefab, wallsParent, x, 2, z);
 					CreateChildPrefab(wallPrefab, wallsParent, x, 3, z);
 				} else if (mapData[z, x] == -1) {
 					// create walls around holes with a depth of 6 to
 					// make a seemingly bottomless pit, spawning a 
-					// floor to make the fog effect work correctly
+					// floor to make the fog effect work correctly.
 					int depth = 6;
 					// right wall
-					if (mapData[z + 1, x] != -1) 
-						for (int i = 0 ; i <= depth ; i++) 
+					if (mapData[z + 1, x] != -1)
+						for (int i = 1 ; i <= depth ; i++)
 							CreateChildPrefab(floorPrefab, holesParent, x, -i, z + 1);
 					// left wall
 					if (mapData[z - 1, x] != -1)
-						for (int i = 0 ; i <= depth ; i++) 
+						for (int i = 1 ; i <= depth ; i++)
 							CreateChildPrefab(floorPrefab, holesParent, x, -i, z - 1);
 					// up wall		
-					if (mapData[z, x + 1] != -1) 
-						for (int i = 0 ; i <= depth ; i++) 
+					if (mapData[z, x + 1] != -1)
+						for (int i = 1 ; i <= depth ; i++)
 							CreateChildPrefab(floorPrefab, holesParent, x + 1, -i, z);
 					// down wall	
-					if (mapData[z, x - 1] != -1) 
-						for (int i = 0 ; i <= depth ; i++) 
+					if (mapData[z, x - 1] != -1)
+						for (int i = 1 ; i <= depth ; i++)
 							CreateChildPrefab(floorPrefab, holesParent, x - 1, -i, z);
-							
+					
 					// floor at the bottom
 					CreateChildPrefab(floorPrefab, holesParent, x, -depth - 1, z);
 				} else if (mapData[z, x] == 0) {
