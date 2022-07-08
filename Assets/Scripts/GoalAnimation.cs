@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class GoalAnimation : MonoBehaviour
 {
-    public float RotationSpeed = 1;
+    public float RotationAngle = 1;
     public float UpDownAmplitude = 1;
     private Vector3 zeroPosition;
     
@@ -17,7 +17,7 @@ public class GoalAnimation : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.Rotate(0.0f, RotationSpeed, 0.0f);
+        transform.Rotate(0.0f, RotationAngle, 0.0f);
         // calls a sin() function with the input of time 
         // to generate up and down movement
         float y = Mathf.Sin(Time.time) * UpDownAmplitude;
