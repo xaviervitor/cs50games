@@ -1,7 +1,7 @@
 # CS50’s Introduction to Game Development Projects
 This repository contains all the 11 exercises I did in the [CS50’s Introduction to Game Development](https://cs50.harvard.edu/games/2018/) course. Each game/exercise lives in a separate branch, following the pattern ```games50/projects/2018/x/{name}```, as the course demanded that naming convention and organization. 
 
-The game/exercises weren't entirely developed by me. Colton Ogden, the course instructor made an initial framework for all the exercises and I had to make changes and additions to the game as specified in the Project page. An exception is the course's final project, which I developed from concept to launch. As such, I decided to move it to another repo: [biomagnetic](https://github.com/xaviervitor/biomagnetic/). For the sake of preservation and keeping all of the relevant information in this repo, each branch has the specification of the exercise in its ```README.md``` file. 
+The games/exercises weren't entirely developed by me. Colton Ogden, the course instructor made an initial framework for all the exercises and I had to make changes and additions to the game as specified in the Project page. An exception is the course's final project, which I developed from concept to launch. As such, I decided to move it to another repo: [biomagnetic](https://github.com/xaviervitor/biomagnetic/). For the sake of preservation and keeping all of the relevant information in this repo, each branch has the specification of the exercise in its ```README.md``` file. 
 
 For reference, the order in which the exercises were done is as follows:
 
