@@ -13,4 +13,4 @@ This is a breakout clone developed using the [Löve2D](https://love2d.org/) game
 
 ---
 
-A video demonstration can be found in this [link](https://youtu.be/yeRep8leY8I).
+A video demonstration can be found in this [link](https://youtu.be/DIZ0A_vO2lY).
