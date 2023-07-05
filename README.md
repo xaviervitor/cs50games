@@ -1,6 +1,6 @@
 # Project 4: Super Mario Bros.
 
-This is a Super Mario Bros. clone developed using the [Löve2D](https://love2d.org/) game engine and written in [Lua](https://www.lua.org/) by Colton Ogden and edited by me. More details in the ```main.lua``` file.
+This is a game made to replicate some of the Super Mario Bros. mechanics, with random room generation. Developed using the [Löve2D](https://love2d.org/) game engine and written in [Lua](https://www.lua.org/) by Colton Ogden and edited by me. More details in the ```main.lua``` file.
 
 ---
 
