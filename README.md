@@ -5,7 +5,7 @@ The game/exercises weren't entirely developed by me. Colton Ogden, the course in
 
 # Project 0: Pong
 
-This is a pong clone developed using the [Löve2D](https://love2d.org/) game engine and written in [Lua](https://www.lua.org/) by Colton Ogden. More details in the ```main.lua``` file.
+This is a pong clone developed using the [Löve2D](https://love2d.org/) game engine and written in [Lua](https://www.lua.org/) by Colton Ogden and edited by me. More details in the ```main.lua``` file.
 
 ---
 
