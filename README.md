@@ -1,21 +1,13 @@
-# CS50’s Introduction to Game Development Projects
-This repository contains all the 11 exercises I did in the [CS50’s Introduction to Game Development](https://cs50.harvard.edu/games/2018/) course. Each game/exercise lives in a separate branch, following the pattern ```games50/projects/2018/x/{name}```, as the course demanded that naming convention and organization. 
+# Project 6: Angry Birds
 
-The game/exercises weren't entirely developed by me. Colton Ogden, the course instructor made an initial framework for all the exercises and I had to make changes and additions to the game as specified in the Project page. An exception is the course's final project, which I developed from concept to launch. As such, I decided to move it to another repo: [biomagnetic](https://github.com/xaviervitor/biomagnetic/). For the sake of preservation and keeping all of the relevant information in this repo, each branch has the specification of the exercise in the ```README.md``` file. 
-
-# Project 1: Flappy Bird
-
-This is a flappy bird clone developed using the [Löve2D](https://love2d.org/) game engine and written in [Lua](https://www.lua.org/) by Colton Ogden and edited by me. More details in the ```main.lua``` file.
+This is a Angry Birds clone developed using the [Löve2D](https://love2d.org/) game engine and written in [Lua](https://www.lua.org/) by Colton Ogden and edited by me. More details in the ```main.lua``` file.
 
 ---
 
 ### Specification
 
-* Randomize the gap between pipes (vertical space), such that they’re no longer hardcoded to 90 pixels.
-* Randomize the interval at which pairs of pipes spawn, such that they’re no longer always 2 seconds apart.
-* When a player enters the ScoreState, award them a “medal” via an image displayed along with the score; this can be any image or any type of medal you choose (e.g., ribbons, actual medals, trophies, etc.), so long as each is different and based on the points they scored that life. Choose 3 different ones, as well as the minimum score needed for each one (though make it fair and not too hard to test :)).
-* Implement a pause feature, such that the user can simply press “P” (or some other key) and pause the state of the game. This pause effect will be slightly fancier than the pause feature we showed in class, though not ultimately that much different. When they pause the game, a simple sound effect should play (I recommend testing out bfxr for this, as seen in Lecture 0!). At the same time this sound effect plays, the music should pause, and once the user presses P again, the gameplay and the music should resume just as they were! To cap it off, display a pause icon in the middle of the screen, nice and large, so as to make it clear the game is paused.
+*   _Implement it such that when the player presses the space bar after they’ve launched an `Alien` (and it hasn’t hit anything yet), split the `Alien` into three `Aliens` that all behave just like the base `Alien`._ The code for actually launching the `Alien` exists in `AlienLaunchMarker`, and we could naively implement most, if not all, of this code in the same class, since the `Alien` in question we want to split off is a field of this class. However, because we want to only allow splitting before we’ve hit anything, we need a flag that will get triggered whenever this `Alien` collides with anything else, so we’ll likely want the logic for this in the `Level` itself here, since that is where we pass in the collision callbacks via `World:setCallbacks()`. The center `Alien` doesn’t really need to be modified for the splitting process; really, all we need to do is spawn two new `Alien`s at the right angle and velocity so that it _appears_ we’ve turned the single `Alien` into three, one above and one below. For this, you’ll need to take linear velocity into consideration. Additionally, be aware that the `Alien` we want to launch has the `userData` of the string “Player”, as opposed to the `Alien` we want to kill, which has just the `userData` of “Alien”. Lastly, be sure that the launch marker doesn’t reset until _all_ of the `Alien`s we fling have slowed to nearly being still, not just the one `Alien` we normally check. In all, you should have all of the pieces at this point you need in order to make this happen; best of luck!
 
 ---
 
-A video demonstration can be found in this [link](https://youtu.be/yeRep8leY8I).
+A video demonstration can be found in this [link](https://youtu.be/W1H2S69RZWI).
